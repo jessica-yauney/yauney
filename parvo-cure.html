@@ -1,0 +1,264 @@
+---
+layout: home
+title: Jessica Yauney
+subtitle: Stanford PhD Student Studying Computer Science Education
+---
+
+<body>
+
+<h1>Parvo Cure [Under Construction]</h1>
+
+<p>
+    Authors: Jessica Yauney (jyauney@stanford.edu)
+</p>
+
+<!-- <h2>Description:</h2>
+Food webs represent the feeding relationships between organisms in an
+ecosystem.  When represented as a directed graph, each organism is a vertex.
+Edges connect organisms where one preys on the other.  The same
+representation can be used to model the spread of a zombie contagion between
+individuals in a population, where vertices represent individuals and edges
+represent reported contact between the individuals.
+
+<p>
+    This document describes two forms of the same assignment.  Both versions
+    have the students complete identical tasks, in one case on the organisms
+    in an ecosystem, and in the other case on the individuals in a population
+    facing a zombie apocalypse.
+    While the tasks students completed were identical in each of the assignments
+    the difference in how the assignment tasks were presented obscured this
+    fact from the students.  This extended the life of the assignment by reducing
+    the utility of any materials posted by students from previous semesters
+    because the terms used to describe the tasks were different in the new
+    context.
+
+<p>
+    The specific tasks required of the students in each version of the assignment
+    were:
+<ul>
+    <li>Display all of the organisms and what they feed on / Display all of individuals and the individuals they have had contact with</li>
+    <li>Identify the apex predators / Identify patient zeros</li>
+    <li>Identify the producers / Identify potential zombies</li>
+    <li>Identify the most flexible eaters / Identify the individual that has been in contact with the most individuals</li>
+    <li>Identify the tastiest organism / Identify the most contacted person</li>
+    <li>Determine the height of each organism in the food web / Determine the maximum distance from a potential zombie for each individual</li>
+    <li>Identify the carnivores, herbivores and omnivores (bonus) / Identify spreader, regular and predator zombies (bonus)</li>
+</ul>
+
+In addition, the Zombie version of the assignment asked students to identify
+individuals that were neither patient zeros nor potential zombies.  The
+corresponding task (identifying organisms that are neither apex predators nor
+producers) was not included in the food web version of the assignment but
+could easily be added.
+
+<p>
+    The food web version of this assignment has been used with approximately
+    2,000 students enrolled in a CS1 course (for non-CS majors) in at least 8
+    terms.  The actual student handout from the most recent offering in the
+    fall 2018 term is available in
+    both <a href="FoodWebHandout.pdf">PDF</a> and <a
+        href="FoodWebHandout.docx">Word</a> format.  The infectious disease version
+    of this assignment has been used with approximately 350 students enrolled in
+    the same CS1 course in a single term.  That version of the handout is also
+    available in <a href="ZombieHandout.pdf">PDF</a> and <a
+        href="ZombieHandout.docx">Word</a> formats.
+
+
+<h2>Metadata</h2>
+
+<table border=1>
+    <tr><td>Summary</td>
+        <td>
+            This assignment asks students to create a program which analyzes
+            food web data, or equivalently, asks students to analyze
+            contacts between infected individuals.  In either case the
+            individual parts of the assignment ask students to identify
+            organisms or individuals with particular properties such as being
+            a producer or being a patient zero.
+        </td></tr>
+    <tr><td>Audience</td>
+        <td>
+            Each variation of this assignment was the final assignment in a
+            programming
+            intensive CS1 course (for non-majors) that takes an objects-late
+            approach.  It can be used whenever students are being introduced to
+            file I/O and exceptions, and have previous experience with
+            dictionaries, lists, strings and functions.  The food web version of
+            the assignment was specifically crafted to appeal to non-majors by
+            showing them how introductory programming could help them build tools
+            to analyze data in their academic discipline of interest.
+            The contact tracing version of the assignment was of particular
+            relevance to all students because it was used during the COVID-19
+            pandemic.
+
+        </td></tr>
+    <tr><td>Difficulty</td>
+        <td>
+            Students found this assignment to be moderately difficult.  The
+            flexibility to tackle all but the first portion of the assignment in
+            any order reduced the difficulty of the assignment because students
+            could, if necessary, abandon one part of the assignment and tackle
+            another while waiting for an opportunity to seek help.  We gave the
+            students between 2 and 3 weeks to complete the assignment and our
+            impression was that this was appropriate.
+
+        </td></tr>
+    <tr><td>Topics</td>
+        <td>
+            The assignment focuses on lists and dictionaries, and to a lesser
+            extent, file I/O, exceptions, strings and functions.  Students also
+            need to write loops and if statements which we assume they are
+            comfortable with from prior assignments that focused on such.
+
+
+        </td></tr>
+    <tr><td>Strengths</td>
+        <td>
+            Having two different versions of the assignment that appear to be
+            unique but actually require students to solve the same problems with
+            different "window dressing" extended the life of the assignment and
+            allowed the effort put into creating grading schemes to be amortized
+            over more offerings of the course.  Additional ways of presenting
+            this same series of tasks are included in the Variants section.
+
+            <p>
+                The data analysis performed is non-numeric and demonstrates the
+                utility of computer science to non-majors for solving problems that
+                might not fit their preconceptions about the kinds of problems that
+                computers are able to solve.
+
+            <p>
+                The data being analyzed in the food web assignment is real data
+                from another discipline that does not have to be simplified or
+                arbitrarily restricted.
+
+            <p>
+                Students are able to see that they are making progress, with each
+                part of the assignment performing an additional analysis and
+                immediately displaying an additional result.  It is
+                <strong>not</strong> an assignment where you don't really see much
+                progress until the final piece is put into place allowing everything
+                to work together.  We believe that being able to see their progress
+                as each part of the assignment is completed benefits students by
+                providing a more immediate sense of accomplishment.
+
+        </td></tr>
+    <tr><td>Weaknesses</td>
+        <td>
+            We have frequently noticed that students confuse returning a value
+            from a function and printing a value within a function.  While
+            the Zombie version of the assignment required students to
+            identify the individuals inside the function body and
+            then print them in the main program we noticed that numerous
+            students erroneously printed the result inside the function.
+            The food web version of the assignment did not include any
+            requirements related to the location where results were printed,
+            and as such, also didn't help students understand the difference
+            between printing a result and returning it from a function.
+
+        </td></tr>
+    <tr><td>Dependencies</td>
+        <td>
+            We provided students with a function that formatted lists, which is
+            available in <a href="formatList.py">formatList.py</a>, to slightly
+            reduce the difficulty of the assignment.
+
+            <p>
+                Our students created their solutions in Python.  However this
+                assignment could easily be adapted to Java (or very likely any other
+                language used to teach CS1).
+
+
+        </td></tr>
+    <tr><td>Variants</td>
+        <td>
+            This document includes two variations of the assignment, one of which
+            describes the tasks students need to perform as operations on food
+            webs, and another which describes the same tasks as operations
+            on contact tracing data for an infection that turns people into
+            zombies.  One could imagine other presentations of the same problem,
+            such as analyzing friend relationships in a social network, the
+            relationship between computers and routers that make up a computer
+            network, or even who tagged whom in a game of tag between children.
+
+            <p>
+                Our students were asked to acquire the input file name from the
+                command line and to perform some minimal exception handling.  These
+                requirements could easily be removed so that this assignment could be
+                used in courses that don't cover those topics.
+
+            <p> The difficulty of the assignment could be increased by requiring
+                students to handle errors in the data files such as blank or
+                incorrectly formatted lines.  Students could also be asked to write
+                the function that we provided for formatting lists nicely instead of
+                having it provided to them.
+
+            <p>
+                Our handouts specifically told students to use lists
+                to store the collections of organisms or indivudals identified
+                in each part of the assignment.  The assignment could be modified
+                to use sets instead of lists, or leave this choice to the students.
+                Similarly, we provided an iterative algorithm for finding the
+                heights of the organisms.  Students could, instead, be provided with
+                a recursive algorithm, or be left to develop their own algorithm.
+
+        </td></tr>
+    <tr><td>Teaching Notes</td>
+        <td>
+            While not included in the assignment handouts, one of the instructors
+            found it particularly helpful to communicate the requirements to
+            students in a visual manner when introducing the assigment in class.
+            This involved drawing one of the data sets as a directed graph and
+            then circling the sub-groups that needed to be identified for each
+            part of the assignment.  Presenting the data visually also allowed
+            the instructor to hint at data structures like trees, forests and
+            graphs that students will encounter in later computer science
+            courses.
+
+        </td></tr>
+</table>
+
+<h2>Food Web Data Files and Expected Output</h2>
+
+<a href="SimpleFoodWeb.txt">SimpleFoodWeb.txt</a><br>
+<a href="SimpleFoodWeb_Output.txt">SimpleFoodWeb_Output.txt</a><br>
+<p>
+    <a href="AquaticFoodWeb.txt">AquaticFoodWeb.txt</a><br>
+    <a href="AquaticFoodWeb_Output.txt">AquaticFoodWeb_Output.txt</a><br>
+<p>
+    <a href="GrasslandFoodWeb.txt">GrasslandFoodWeb.txt</a><br>
+    <a href="GrasslandFoodWeb_Output.txt">GrasslandFoodWeb_Output.txt</a><br>
+<p>
+    <a href="MixedFoodWeb.txt">MixedFoodWeb.txt</a><br>
+    <a href="MixedFoodWeb_Output.txt">MixedFoodWeb_Output.txt</a><br>
+<p>
+    <a href="AnotherFoodWeb.txt">AnotherFoodWeb.txt</a><br>
+    <a href="AnotherFoodWeb_Output.txt">AnotherFoodWeb_Output.txt</a><br>
+<p>
+    <a href="TerrestrialFoodWeb.txt">TerrestrialFoodWeb.txt</a><br>
+    <a href="TerrestrialFoodWeb_Output.txt">TerrestrialFoodWeb_Output.txt</a><br>
+<p>
+
+<h2>Contact Tracing Files and Expected Output</h2>
+
+<a href="DataSet0.txt">DataSet0.txt</a><br>
+<a href="DataSet0-out.txt">DataSet0-out.txt</a><br>
+<p>
+    <a href="DataSet1.txt">DataSet1.txt</a><br>
+    <a href="DataSet1-out.txt">DataSet1-out.txt</a><br>
+<p>
+    <a href="DataSet2.txt">DataSet2.txt</a><br>
+    <a href="DataSet2-out.txt">DataSet2-out.txt</a><br>
+<p>
+    <a href="DataSet3.txt">DataSet3.txt</a><br>
+    <a href="DataSet3-out.txt">DataSet3-out.txt</a><br>
+<p>
+    <a href="DataSet4.txt">DataSet4.txt</a><br>
+    <a href="DataSet4-out.txt">DataSet4-out.txt</a><br>
+<p>
+    <a href="DataSet5.txt">DataSet5.txt</a><br>
+    <a href="DataSet5-out.txt">DataSet5-out.txt</a><br>
+<p>-->
+
+
+</body>
