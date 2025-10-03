@@ -20,7 +20,7 @@ author: Some Person
 ###############################################
 
 navbar-links:
-  About Me: "aboutme"
+  CV: "https://jessica-yauney.github.io/yauney/assets/CV.pdf"
   Projects:
     - Digital Storyboards: "https://jessica-yauney.github.io/digital-storyboards/"
     - Parvo Cure: "https://jessica-yauney.github.io/parvo-cure/"
