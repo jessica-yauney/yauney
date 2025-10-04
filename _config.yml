@@ -21,6 +21,7 @@ author: Some Person
 
 navbar-links:
   CV: "https://jessica-yauney.github.io/yauney/assets/CV.pdf"
+  Posts: "https://jessica-yauney.github.io/yauney/blogs/"
   Projects:
     - Digital Storyboards: "https://jessica-yauney.github.io/digital-storyboards/"
     - Parvo Cure: "https://jessica-yauney.github.io/yauney/parvo-cure/"
