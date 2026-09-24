@@ -1,0 +1,146 @@
+---
+layout: default
+title: Ambiguities
+subtitle: A record of the 'problems' with the specifications
+---
+
+<body>
+    <h1>Ambiguity map</h1>
+    <p>This page is intentionally not linked from the student specification. 
+        <ul>
+            <li>The first column names the planted issue.</li>
+            <li>The middle column explains the risk students should be able to articulate</li> 
+            <li>the last column gives the canonical decision used by the supplied acceptance tests.</li>
+        </ul>
+    </p>
+    <div class="scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>Subsystem / issue</th>
+                    <th>Why it matters</th>
+                    <th>Canonical product decision</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Dog age: conversion rule</strong></td>
+                    <td>“Dog terms” is undefined; real-world calculators may vary by size or breed, but size is
+                        absent.</td>
+                    <td>For this fictional release, dog-age display is exactly <code>human_years × 7</code>.
+                        Fractional years are permitted. This display value is not used by dosage.</td>
+                </tr>
+                <tr>
+                    <td><strong>Dog age: months</strong></td>
+                    <td>A value such as 18 could mean months or years.</td>
+                    <td>Age is supplied in human years. If a UI accepts months, it must convert months ÷ 12
+                        before calling the core logic.</td>
+                </tr>
+                <tr>
+                    <td><strong>Dog-age output “used in dosage” vs dosage age</strong>
+                    </td>
+                    <td>The initial prose implies dog-years feed dosage, while the activity notes specify human
+                        years for dosage.</td>
+                    <td>Dosage uses human years. The “used in dosage” sentence is stale.</td>
+                </tr>
+                <tr>
+                    <td><strong>Dosage ignores age</strong></td>
+                    <td>Age is an input but the displayed formula does not use it.</td>
+                    <td><code>base × ((weight_kg + 5) - age_years / 3)</code>.</td>
+                </tr>
+                <tr>
+                    <td><strong>Dosage units</strong></td>
+                    <td>Weight, age, and output units are unspecified.</td>
+                    <td>Weight = kg; age = human years; internal dosage = mL. Display US fluid ounces for U.S.
+                        delivery destinations and mL elsewhere.</td>
+                </tr>
+                <tr>
+                    <td><strong>One dose per “month”</strong> </td>
+                    <td>Calendar month and rolling time window are different business rules.</td>
+                    <td>Ordering limit uses a rolling 30-day period.</td>
+                </tr>
+                <tr>
+                    <td><strong>Medicine cost has no provider</strong></td>
+                    <td>Discounts need a base price but no named component supplies it.</td>
+                    <td>Add a Medicine Cost component. Price = $0.033814057 per mL (equivalent to $1.00 per
+                        fluid ounce for this exercise).</td>
+                </tr>
+                <tr>
+                    <td><strong>Discount circular dependency</strong></td>
+                    <td>Discount takes Total_Cost, while total depends on discount/net cost.</td>
+                    <td>Discounts apply to Medicine Cost, not Total_Cost.</td>
+                </tr>
+                <tr>
+                    <td><strong>Coupon reuse “once per month”</strong></td>
+                    <td>No history rule or month definition is given.</td>
+                    <td>Each coupon type may be used once per owner per calendar month. History supplies the
+                        evidence.</td>
+                </tr>
+                <tr>
+                    <td><strong>Two 10% coupons</strong></td>
+                    <td>Concurrent vs sequential percentage discounts differ.</td>
+                    <td>Coupons are applied sequentially, in the order supplied. Duplicate coupon types in one
+                        transaction are rejected by the once-per-calendar-month rule.</td>
+                </tr>
+                <tr>
+                    <td><strong>BOGO conflicts with one-dose limit</strong></td>
+                    <td>A “buy one get one” promotion requires quantity, but the system allows one dose.</td>
+                    <td>BOGO is a stale coupon and is rejected for this release. This is an example of removing
+                        an inconsistent requirement rather than inventing behavior.</td>
+                </tr>
+                <tr>
+                    <td><strong>Owner location vs delivery location</strong></td>
+                    <td>Tax and shipping depend on destination, which may differ from current owner location.
+                    </td>
+                    <td>Shipping and tax use Delivery Location. Owner Location remains separate metadata.</td>
+                </tr>
+                <tr>
+                    <td><strong>U.S. territories missing</strong></td>
+                    <td>The table is incomplete.</td>
+                    <td>Unsupported destinations produce a clear input error; students should not silently guess
+                        a rate.</td>
+                </tr>
+                <tr>
+                    <td><strong>PennsylvaniaRhode Island merged</strong></td>
+                    <td>A malformed lookup key can make two valid locations impossible to use.</td>
+                    <td>Treat Pennsylvania and Rhode Island as separate valid keys using the same provided value
+                        in this dataset.</td>
+                </tr>
+                <tr>
+                    <td><strong>Tax rates look like percentages</strong></td>
+                    <td>Multiplying by 5.59 vs 0.0559 changes tax by 100×.</td>
+                    <td>The table stores percentages: tax = net × rate ÷ 100. A zero rate is valid.</td>
+                </tr>
+                <tr>
+                    <td><strong>Tax and shipping data are suspiciously identical</strong></td>
+                    <td>Copy/paste data can be syntactically valid but semantically wrong.</td>
+                    <td>Use the supplied values for the exercise, but record the data-quality risk. The reduced
+                        table intentionally includes a few rows where tax and shipping differ.</td>
+                </tr>
+                <tr>
+                    <td><strong>Shipping formula adds Net Cost</strong></td>
+                    <td>The output is named Shipping Cost but the formula returns merchandise + shipping.</td>
+                    <td>Shipping Cost is the lookup fee only.</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Cost uses undefined X and omits shipping</strong></td>
+                    <td>The total cannot be computed consistently as written.</td>
+                    <td>Total = Net Cost + Shipping Cost + Tax Amount. The <code>Dosage × X</code> sentence is
+                        obsolete because medicine cost has already been computed.</td>
+                </tr>
+                <tr>
+                    <td><strong>Purchase Date source</strong></td>
+                    <td>History and monthly rules depend on a date that no component creates.</td>
+                    <td>Checkout supplies the purchase date. Production would use the system clock; tests pass a
+                        date explicitly for determinism.</td>
+                </tr>
+                <tr>
+                    <td><strong>Rounding</strong></td>
+                    <td>Rounding inside a pipeline can accumulate error and make integrations disagree.</td>
+                    <td>Keep full precision internally; round currency to two decimals only for display.
+                        Acceptance tests compare with tolerance.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>

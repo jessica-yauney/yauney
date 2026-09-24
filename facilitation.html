@@ -1,0 +1,144 @@
+---
+layout: default
+title: Facilitation Guide
+subtitle: Two options for implementing this type of project
+--- 
+<body>
+<nav>
+<a href="#goals">Learning goals</a><a href="#prep">Instructor prep</a><a href="#single">90–115 minute lesson</a><a href="#multiday">Multi-day project</a><a href="#pm">Product Manager role</a><a href="#ai">AI options</a><a href="#debrief">Debrief prompts</a><a href="#notes">Facilitation notes</a>
+</nav>
+
+<section id="goals">
+<h2>Learning Goals</h2>
+<p>Students should experience that programming is not only the act of writing code. In this activity, implementation is intentionally manageable for a CS1 student while the harder work lies in deciding what the system should mean and how to know whether it behaves correctly.</p>
+<div class="cards">
+<div class="card"><h3>Requirements precision</h3><p>Notice ambiguity, contradiction, missing information, and assumptions hidden inside apparently concrete requirements.</p></div>
+<div class="card"><h3>Strategic communication</h3><p>Use a limited question budget to ask high-value questions of the Product Manager rather than asking for implementation help.</p></div>
+<div class="card"><h3>Design and decomposition</h3><p>Break the system into components with clear responsibilities, interfaces, and data flow.</p></div>
+<div class="card"><h3>Testing as specification</h3><p>Use unit and integration tests to make decisions explicit and verify both individual pieces and whole-system behavior.</p></div>
+</div>
+</section>
+
+<section id="prep">
+<h2>Instructor Preparation</h2>
+<ul class="checklist">
+<li>Publish the student-facing specification and data tables without the teacher ambiguity notes.</li>
+<li>Decide whether students work individually, in pairs, or in teams of 3–4.</li>
+<li>Prepare the Product Manager answer sheet so responses stay consistent across teams.</li>
+<li>Choose the question limit; three questions per team is the default.</li>
+<li>Decide whether questions are spoken, submitted on paper, or posted through a form/chat.</li>
+<li>Prepare Java and/or Python starter structures if students are not expected to build scaffolding themselves.</li>
+<li>Confirm that students know how to run unit tests in the selected language.</li>
+<li>Decide whether AI tools are prohibited, permitted after planning, or fully permitted with documentation.</li>
+<li>Prepare one or two acceptance-test scenarios that cross several components.</li>
+<li>Decide whether the first acceptance-test run is formative, graded, or purely diagnostic.</li>
+</ul>
+<div class="callout"><strong>Recommended stance:</strong> do not rescue students from ambiguity immediately. The point is for students to discover that a requirement can look precise while still failing to determine behavior.</div>
+</section>
+
+<section id="single">
+<h2>90–115 Minute In-Class Lesson Plan</h2>
+<p>This version is centered on a 105-minute meeting. The time tags show where the plan can be compressed or expanded.</p>
+<div class="timeline">
+
+<div class="block"><div class="time">0–10 min</div><div class="activity"><h3>Launch: “What counts as correct?”</h3><p>Introduce the fictional ParvoCure project and explain that incorrect behavior can come from incorrect code or unclear requirements. Tell students they will have only a small number of opportunities to clarify the product.</p><p><span class="tag">Compress to 7</span><span class="tag">Expand to 12</span></p></div></div>
+
+<div class="block"><div class="time">10–15 min</div><div class="activity"><h3>Team formation and roles</h3><p>Form teams and designate a Product Owner/spokesperson. Only that person submits the team’s Product Manager questions. Other members focus on requirements, design, and tests.</p><p><span class="tag">Compress to 3</span><span class="tag">Expand to 7</span></p></div></div>
+
+<div class="block"><div class="time">15–35 min</div><div class="activity"><h3>Requirements analysis</h3><p>Students inspect the specification, tables, inputs, outputs, and component descriptions. Ask them to record ambiguities, conflicting information, missing information, and risky assumptions. Teams also sketch likely component boundaries.</p><p>By the end of this phase, each team chooses its limited Product Manager questions.</p><p><span class="tag">Core activity</span><span class="tag">Keep at least 15 min</span></p></div></div>
+
+<div class="block"><div class="time">35–45 min</div><div class="activity"><h3>Product Manager questions</h3><p>Take questions one team at a time or collect them simultaneously and answer from the prepared answer sheet. Keep the constraint visible: teams may ask only the allowed number of questions.</p><p><span class="tag">Default: 3 questions/team</span></p></div></div>
+
+<div class="block"><div class="time">45–60 min</div><div class="activity"><h3>Design and test planning</h3><p>Require a quick architecture checkpoint before coding: What files/classes/modules will exist? What does each component receive and return? Which behaviors need unit tests? Which workflow needs an integration test?</p><p>If AI is allowed, this is a good point to freeze the planning artifact before code generation begins.</p><p><span class="tag">Compress to 10</span><span class="tag">Expand to 18</span></p></div></div>
+
+<div class="block"><div class="time">60–85 min</div><div class="activity"><h3>Implementation + unit testing</h3><p>Teams implement components and unit tests. In a short meeting, do not require every component to be complete before moving on. Circulate and ask, “What requirement does this test represent?” and “What assumption did you make here?”</p><p><span class="tag">Compress to 20</span><span class="tag">Expand to 30</span></p></div></div>
+
+<div class="block"><div class="time">85–100 min</div><div class="activity"><h3>Integration / acceptance-test challenge</h3><p>Give teams one end-to-end scenario or have them run their own integration test. The goal is to expose interface mismatches, inconsistent interpretations, or assumptions that only become visible once components interact.</p><p>Treat the first failure as diagnostic evidence rather than simply as a correctness penalty.</p><p><span class="tag">Keep at least 10 min</span></p></div></div>
+
+<div class="block"><div class="time">100–110 min</div><div class="activity"><h3>Team retrospective</h3><p>Each team records one ambiguity they caught, one they missed, one question they wish they had asked, and one test or integration failure that changed their understanding.</p><p><span class="tag">Compress to 5</span></p></div></div>
+
+<div class="block"><div class="time">110–115 min</div><div class="activity"><h3>Whole-class wrap-up</h3><p>Compare interpretations. Close by connecting the experience to generative AI: code generation does not remove the need to decide what should be generated, what assumptions are acceptable, and how correctness will be checked.</p><p><span class="tag">Optional in 90-minute version</span></p></div></div>
+
+</div>
+<div class="callout blue"><strong>90-minute adaptation:</strong> use approximately 7 / 3 / 15 / 8 / 10 / 22 / 15 / 5 / 5 minutes. Consider providing starter project scaffolding and requiring only a subset of the components to be implemented in class.</div>
+<div class="callout green"><strong>115-minute adaptation:</strong> preserve the full requirements discussion and add more time to design, implementation, and the retrospective rather than adding more lecture.</div>
+</section>
+
+<section id="multiday">
+<h2>Multi-Day Project Plan</h2>
+<p>The multi-day version allows students to build the complete system, write stronger tests, and revise their design after integration failures. This five-day sequence can be compressed to three days by combining Days 1–2 and Days 4–5.</p>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Day</th><th>Primary focus</th><th>In-class work</th><th>Checkpoint / artifact</th><th>Instructor role</th></tr></thead>
+<tbody>
+<tr><th>Day 1</th><td><strong>Requirements and risk</strong></td><td>Introduce scenario; teams read the specification; identify ambiguities, inconsistencies, and missing information; select Product Manager questions.</td><td>Risk/ambiguity log, three proposed questions, initial component sketch.</td><td>Resist resolving everything. Ask what could go wrong if an assumption is wrong.</td></tr>
+<tr><th>Day 2</th><td><strong>Clarification and architecture</strong></td><td>Product Manager question session; teams revise their understanding; define component responsibilities and interfaces; write initial unit-test cases before or alongside implementation.</td><td>Updated decision log, architecture plan, at least one unit test per major component.</td><td>Answer only through the Product Manager role; check that tests correspond to stated decisions.</td></tr>
+<tr><th>Day 3</th><td><strong>Implementation and unit testing</strong></td><td>Build the separate files/classes/modules; load reference data; implement validation; run component-level tests.</td><td>Working components, passing unit tests for most components, list of known failures.</td><td>Coach decomposition and debugging. When students ask “what should it do?”, redirect to their decision log or PM answers.</td></tr>
+<tr><th>Day 4</th><td><strong>Integration and system behavior</strong></td><td>Connect components; run realistic checkout scenarios; add integration tests; investigate mismatches between individually-correct components.</td><td>At least one complete end-to-end test plus a record of one integration problem and its resolution.</td><td>Run or release acceptance-test scenarios. Encourage teams to diagnose root causes rather than patch outputs.</td></tr>
+<tr><th>Day 5</th><td><strong>Acceptance, revision, and reflection</strong></td><td>Final acceptance tests; revise code/tests/documentation; prepare a short technical explanation or demo; complete reflection.</td><td>Final code, unit/integration tests, decision log, short reflection, optional demo.</td><td>Debrief across teams. Highlight different reasonable interpretations and the value of explicit assumptions.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>Optional out-of-class work</h3>
+<ul>
+<li><strong>After Day 1:</strong> refine the ambiguity log and rank uncertainties by risk.</li>
+<li><strong>After Day 2:</strong> create test cases from clarified requirements before writing additional implementation.</li>
+<li><strong>After Day 3:</strong> finish component implementations and bring a failing test to class.</li>
+<li><strong>After Day 4:</strong> revise integration tests and prepare one question about a remaining system risk.</li>
+<li><strong>After Day 5:</strong> submit a short reflection connecting the activity to AI-assisted programming.</li>
+</ul>
+<div class="callout"><strong>Shorter 3-day version:</strong> combine Days 1–2, use Day 2 for implementation/unit testing, and use Day 3 for integration, acceptance testing, and reflection.</div>
+</section>
+
+<section id="pm">
+<h2>Facilitating the Product Manager Role</h2>
+<p>The limited-question mechanic works best when students see the Product Manager as a scarce source of domain clarification, not as a debugging assistant.</p>
+<div class="cards">
+<div class="card"><h3>Good questions</h3><ul><li>Resolve a requirement that changes system behavior.</li><li>Clarify units, time windows, or the source of required data.</li><li>Resolve contradictions between requirements.</li><li>Affect multiple components or tests.</li></ul></div>
+<div class="card"><h3>Low-value questions</h3><ul><li>Ask how to write a loop, class, or dictionary.</li><li>Ask the Product Manager to debug syntax.</li><li>Repeat information already stated clearly.</li><li>Spend a question on a safe engineering decision the team can document.</li></ul></div>
+</div>
+<p>If a team asks a programming question, the Product Manager can respond: “That is an engineering decision; what product behavior do you need clarified?”</p>
+</section>
+
+<section id="ai">
+<h2>Options for Generative-AI Use</h2>
+<div class="cards">
+<div class="card"><h3>Option A: No AI</h3><p>Use when the course still needs students to practice implementation fluency. The same requirements and testing goals remain.</p></div>
+<div class="card"><h3>Option B: AI after planning</h3><p>Require the ambiguity log, Product Manager questions, component design, and initial tests before AI use. This best matches the assignment’s intended framing.</p></div>
+<div class="card"><h3>Option C: AI throughout</h3><p>Allow AI from the beginning, but grade the student’s ability to identify unsupported assumptions, write tests, revise generated code, and explain the resulting system.</p></div>
+<div class="card"><h3>Useful reflection prompt</h3><p>“Identify one place where generated code could be syntactically correct and still be wrong because the requirement was unclear.”</p></div>
+</div>
+</section>
+
+<section id="debrief">
+<h2>Debrief Prompts</h2>
+<ul>
+<li>Which requirement looked clear at first but became ambiguous when you tried to implement or test it?</li>
+<li>Which of your questions produced the most useful information? Why?</li>
+<li>What did your team assume without asking?</li>
+<li>Did two individually-correct components disagree when integrated? What caused the mismatch?</li>
+<li>Which test best expresses a requirement that was not obvious from the original specification?</li>
+<li>What would have happened if your incorrect assumption reached production?</li>
+<li>What work in this assignment could a code generator do easily? What work still required human judgment?</li>
+<li>If you had one more Product Manager question, what would you ask now?</li>
+</ul>
+</section>
+
+<section id="notes">
+<h2>Additional Facilitation Notes</h2>
+<h3>Keep ambiguity productive, not arbitrary</h3>
+<p>Students should be able to discover that something is underspecified and make progress by asking, documenting, or testing. Avoid ambiguities that depend on obscure domain knowledge.</p>
+
+<h3>Do not let one early mistake destroy the rest of the project</h3>
+<p>If a team makes a reasonable but different product decision, allow them to continue so long as they document it and implement it consistently. Reserve acceptance-test failures for clarified requirements or contradictions within the team’s own decisions.</p>
+
+<h3>Use integration failures as discussion material</h3>
+<p>When one component expects a value in a different unit, format, or meaning than another component provides, resist fixing it immediately. Ask which interface contract was assumed and where that contract should have been recorded or tested.</p>
+
+<h3>Preserve time for reflection</h3>
+<p>The retrospective is where the activity becomes more than a quirky programming problem. Even five minutes of explicit reflection helps students connect requirements work to software engineering practice and the limitations of code generation.</p>
+
+<div class="callout green"><strong>Instructor success criterion:</strong> by the end of the activity, students should be talking about assumptions, requirements, interfaces, and tests</div>
+</section>
+</body>

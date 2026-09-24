@@ -1,0 +1,782 @@
+
+---
+layout: default
+title: ParvoCure Python Reference Code
+subtitle: One exemplar of ParvoCure in Python
+---
+<body id="top">
+
+<main class="wrap">
+  <nav class="toc">
+    <section><h2>Main Files</h2><a href="#service">service.py</a><a href="#data-loader">data_loader.py</a><a href="#models">models.py</a><a href="#order-history">order_history.py</a></section>
+    <section><h2>Smaller Files</h2><a href="#dog-age">dog_age.py</a><a href="#dosage">dosage.py</a><a href="#medicine-cost">medicine_cost.py</a><a href="#discount">discount.py</a><a href="#shipping">shipping.py</a><a href="#tax">tax.py</a><a href="#total">total.py</a></section>
+    <section><h2>Test Files</h2><a href="#test-integration">test_integration.py</a><a href="#test-unit">test_unit.py</a></section>
+  </nav>
+
+  <h2 class="section-title">Main Files</h2>
+  <p class="section-note">Core orchestration, data loading, shared models, and order history.</p>
+  
+    <article class="card" id="service">
+      <div class="card-head">
+        <div><h3>service.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>from __future__ import annotations
+
+from datetime import date
+
+from .data_loader import ReferenceData, load_reference_data
+from .discount import DiscountCalculator
+from .dog_age import DogAgeCalculator
+from .dosage import DosageCalculator
+from .medicine_cost import MedicineCostCalculator
+from .models import CheckoutRequest, OrderQuote
+from .order_history import OrderHistory
+from .shipping import ShippingCalculator
+from .tax import TaxCalculator
+from .total import TotalCostCalculator
+
+ML_PER_FL_OZ = 29.5735295625
+
+
+class CheckoutService:
+    def __init__(
+        self,
+        data: ReferenceData | None = None,
+        history: OrderHistory | None = None,
+    ) -&gt; None:
+        data = data or load_reference_data()
+        self.history = history or OrderHistory()
+        self.age = DogAgeCalculator()
+        self.dosage = DosageCalculator(data.breed_base)
+        self.medicine_cost = MedicineCostCalculator()
+        self.discount = DiscountCalculator()
+        self.shipping = ShippingCalculator(data.shipping_fee)
+        self.tax = TaxCalculator(data.tax_rate_percent)
+        self.total = TotalCostCalculator()
+        self._us_destinations = data.us_destinations
+
+    def checkout(self, request: CheckoutRequest) -&gt; OrderQuote:
+        self._validate_request(request)
+
+        if self.history.has_order_within_30_days(request.owner_id, request.purchase_date):
+            raise ValueError(&quot;owner already ordered a dose within the previous 30 days&quot;)
+
+        dog_age_display = self.age.calculate(request.dog_age_years)
+        dosage_ml = self.dosage.calculate_ml(
+            request.dog_breed, request.dog_age_years, request.dog_weight_kg
+        )
+        medicine_cost = self.medicine_cost.calculate(dosage_ml)
+        net_cost = self.discount.calculate(
+            medicine_cost,
+            request.coupons,
+            request.owner_id,
+            request.purchase_date,
+            self.history,
+        )
+        discount_amount = medicine_cost - net_cost
+        shipping_cost = self.shipping.calculate(request.delivery_location)
+        tax_amount = self.tax.calculate(net_cost, request.delivery_location)
+        total_cost = self.total.calculate(net_cost, shipping_cost, tax_amount)
+
+        if request.delivery_location in self._us_destinations:
+            dosage_display_value = dosage_ml / ML_PER_FL_OZ
+            dosage_display_unit = &quot;fl oz&quot;
+        else:
+            dosage_display_value = dosage_ml
+            dosage_display_unit = &quot;mL&quot;
+
+        self.history.record(
+            owner_id=request.owner_id,
+            net_cost=net_cost,
+            tax_amount=tax_amount,
+            shipping_cost=shipping_cost,
+            purchase_date=request.purchase_date,
+            coupons=request.coupons,
+        )
+
+        return OrderQuote(
+            dog_age_display=dog_age_display,
+            dosage_ml=dosage_ml,
+            dosage_display_value=dosage_display_value,
+            dosage_display_unit=dosage_display_unit,
+            medicine_cost=medicine_cost,
+            discount_amount=discount_amount,
+            net_cost=net_cost,
+            shipping_cost=shipping_cost,
+            tax_amount=tax_amount,
+            total_cost=total_cost,
+        )
+
+    @staticmethod
+    def _validate_request(request: CheckoutRequest) -&gt; None:
+        if not request.owner_id.strip():
+            raise ValueError(&quot;owner_id is required&quot;)
+        if not request.owner_location.strip():
+            raise ValueError(&quot;owner_location is required&quot;)
+        if not request.delivery_location.strip():
+            raise ValueError(&quot;delivery_location is required&quot;)
+        if not request.dog_breed.strip():
+            raise ValueError(&quot;dog_breed is required&quot;)
+        if not isinstance(request.purchase_date, date):
+            raise ValueError(&quot;purchase_date must be a date&quot;)
+</code></pre>
+    </article>
+    
+    <article class="card" id="data-loader">
+      <div class="card-head">
+        <div><h3>data_loader.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>from __future__ import annotations
+
+import csv
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass(frozen=True)
+class ReferenceData:
+    breed_base: dict[str, float]
+    tax_rate_percent: dict[str, float]
+    shipping_fee: dict[str, float]
+
+
+def load_breed_base(path: str | Path) -&gt; dict[str, float]:
+    breed_base = {}
+
+    with open(path, newline=&quot;&quot;, encoding=&quot;utf-8&quot;) as file:
+        reader = csv.DictReader(file)
+
+        for row in reader:
+            breed = row[&quot;breed&quot;]
+            dosage = float(row[&quot;base_dosage&quot;])
+            breed_base[breed] = dosage
+
+    return breed_base
+
+
+def load_location_rates(
+    path: str | Path,
+) -&gt; tuple[dict[str, float], dict[str, float]]:
+    tax_rates = {}
+    shipping_fees = {}
+
+    with open(path, newline=&quot;&quot;, encoding=&quot;utf-8&quot;) as file:
+        reader = csv.DictReader(file)
+
+        for row in reader:
+            location = row[&quot;location&quot;]
+            tax_rate = float(row[&quot;tax_rate&quot;])
+            shipping_fee = float(row[&quot;shipping_fee&quot;])
+
+            # Fix the malformed row in the provided data.
+            if location == &quot;PennsylvaniaRhode Island&quot;:
+                tax_rates[&quot;Pennsylvania&quot;] = tax_rate
+                tax_rates[&quot;Rhode Island&quot;] = tax_rate
+
+                shipping_fees[&quot;Pennsylvania&quot;] = shipping_fee
+                shipping_fees[&quot;Rhode Island&quot;] = shipping_fee
+            else:
+                tax_rates[location] = tax_rate
+                shipping_fees[location] = shipping_fee
+
+    return tax_rates, shipping_fees
+
+
+def load_reference_data(
+    data_dir: str | Path = &quot;data&quot;,
+) -&gt; ReferenceData:
+    data_dir = Path(data_dir)
+
+    breed_base = load_breed_base(
+        data_dir / &quot;breed_base.csv&quot;
+    )
+
+    tax_rates, shipping_fees = load_location_rates(
+        data_dir / &quot;location_rates.csv&quot;
+    )
+
+    return ReferenceData(
+        breed_base,
+        tax_rates,
+        shipping_fees,
+    )</code></pre>
+    </article>
+    
+    <article class="card" id="models">
+      <div class="card-head">
+        <div><h3>models.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import date
+
+
+@dataclass(frozen=True)
+class CheckoutRequest:
+    owner_id: str
+    owner_location: str
+    delivery_location: str
+    dog_breed: str
+    dog_age_years: float
+    dog_weight_kg: float
+    coupons: tuple[str, ...]
+    purchase_date: date
+
+
+@dataclass(frozen=True)
+class OrderQuote:
+    dog_age_display: float
+    dosage_ml: float
+    dosage_display_value: float
+    dosage_display_unit: str
+    medicine_cost: float
+    discount_amount: float
+    net_cost: float
+    shipping_cost: float
+    tax_amount: float
+    total_cost: float
+</code></pre>
+    </article>
+    
+    <article class="card" id="order-history">
+      <div class="card-head">
+        <div><h3>order_history.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import date
+
+
+@dataclass(frozen=True)
+class HistoryRecord:
+    owner_id: str
+    net_cost: float
+    tax_amount: float
+    shipping_cost: float
+    purchase_date: date
+    coupons: tuple[str, ...]
+
+
+class OrderHistory:
+    def __init__(self) -&gt; None:
+        self._records: list[HistoryRecord] = []
+
+    def has_order_within_30_days(self, owner_id: str, purchase_date: date) -&gt; bool:
+        for record in self._records:
+            if record.owner_id != owner_id:
+                continue
+            days = (purchase_date - record.purchase_date).days
+            if 0 &lt;= days &lt; 30:
+                return True
+        return False
+
+    def coupon_used_in_calendar_month(
+        self, owner_id: str, coupon: str, purchase_date: date
+    ) -&gt; bool:
+        return any(
+            record.owner_id == owner_id
+            and coupon in record.coupons
+            and record.purchase_date.year == purchase_date.year
+            and record.purchase_date.month == purchase_date.month
+            for record in self._records
+        )
+
+    def record(
+        self,
+        owner_id: str,
+        net_cost: float,
+        tax_amount: float,
+        shipping_cost: float,
+        purchase_date: date,
+        coupons: tuple[str, ...],
+    ) -&gt; None:
+        self._records.append(
+            HistoryRecord(
+                owner_id=owner_id,
+                net_cost=net_cost,
+                tax_amount=tax_amount,
+                shipping_cost=shipping_cost,
+                purchase_date=purchase_date,
+                coupons=tuple(coupons),
+            )
+        )
+
+    def all_records(self) -&gt; tuple[HistoryRecord, ...]:
+        return tuple(self._records)
+</code></pre>
+    </article>
+    
+
+  <h2 class="section-title">Smaller Files</h2>
+  <p class="section-note">Focused calculator and supporting modules.</p>
+  
+    <article class="card" id="dog-age">
+      <div class="card-head">
+        <div><h3>dog_age.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>import math
+
+
+class DogAgeCalculator:
+    &quot;&quot;&quot;For this fictional release, dog years = human years * 7.&quot;&quot;&quot;
+
+    def calculate(self, human_age_years: float) -&gt; float:
+        if not math.isfinite(human_age_years) or human_age_years &lt; 0:
+            raise ValueError(&quot;dog age must be a finite, nonnegative number&quot;)
+        return human_age_years * 7.0
+</code></pre>
+    </article>
+    
+    <article class="card" id="dosage">
+      <div class="card-head">
+        <div><h3>dosage.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>from __future__ import annotations
+
+import math
+from collections.abc import Mapping
+
+
+class DosageCalculator:
+    def __init__(self, breed_base: Mapping[str, float]):
+        self._breed_base = dict(breed_base)
+
+    def calculate_ml(self, breed: str, human_age_years: float, weight_kg: float) -&gt; float:
+        if breed not in self._breed_base:
+            raise ValueError(f&quot;unknown breed: {breed}&quot;)
+        if not math.isfinite(human_age_years) or human_age_years &lt; 0:
+            raise ValueError(&quot;dog age must be a finite, nonnegative number&quot;)
+        if not math.isfinite(weight_kg) or weight_kg &lt;= 0:
+            raise ValueError(&quot;dog weight must be a finite, positive number&quot;)
+
+        base = self._breed_base[breed]
+        dosage_ml = base * ((weight_kg + 5.0) - human_age_years / 3.0)
+        if dosage_ml &lt; 0:
+            raise ValueError(&quot;the dosage formula produced a negative dosage&quot;)
+        return dosage_ml
+</code></pre>
+    </article>
+    
+    <article class="card" id="medicine-cost">
+      <div class="card-head">
+        <div><h3>medicine_cost.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>import math
+
+
+class MedicineCostCalculator:
+    PRICE_PER_ML = 0.033814057
+
+    def calculate(self, dosage_ml: float) -&gt; float:
+        if not math.isfinite(dosage_ml) or dosage_ml &lt; 0:
+            raise ValueError(&quot;dosage must be a finite, nonnegative number&quot;)
+        return dosage_ml * self.PRICE_PER_ML
+</code></pre>
+    </article>
+    
+    <article class="card" id="discount">
+      <div class="card-head">
+        <div><h3>discount.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>from __future__ import annotations
+
+import math
+from datetime import date
+from collections.abc import Sequence
+
+from .order_history import OrderHistory
+
+
+class DiscountCalculator:
+    VALID_COUPONS = frozenset({&quot;10% Off&quot;, &quot;$10 Off&quot;, &quot;BOGO&quot;})
+
+    def calculate(
+        self,
+        medicine_cost: float,
+        coupons: Sequence[str],
+        owner_id: str,
+        purchase_date: date,
+        history: OrderHistory,
+    ) -&gt; float:
+        if not math.isfinite(medicine_cost) or medicine_cost &lt; 0:
+            raise ValueError(&quot;medicine cost must be a finite, nonnegative number&quot;)
+        if len(coupons) &gt; 2:
+            raise ValueError(&quot;maximum of two coupons per transaction&quot;)
+        if len(set(coupons)) != len(coupons):
+            raise ValueError(&quot;a coupon type may only be used once per calendar month&quot;)
+
+        net = medicine_cost
+        for coupon in coupons:
+            if coupon not in self.VALID_COUPONS:
+                raise ValueError(f&quot;unknown coupon: {coupon}&quot;)
+            if coupon == &quot;BOGO&quot;:
+                raise ValueError(&quot;BOGO is unavailable in this release&quot;)
+            if history.coupon_used_in_calendar_month(owner_id, coupon, purchase_date):
+                raise ValueError(&quot;coupon already used this calendar month&quot;)
+
+            # Product decision: coupons are applied sequentially in submitted order.
+            if coupon == &quot;10% Off&quot;:
+                net *= 0.90
+            elif coupon == &quot;$10 Off&quot;:
+                net = max(0.0, net - 10.0)
+
+        return net
+</code></pre>
+    </article>
+    
+    <article class="card" id="shipping">
+      <div class="card-head">
+        <div><h3>shipping.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>from __future__ import annotations
+
+from collections.abc import Mapping
+
+
+class ShippingCalculator:
+    def __init__(self, shipping_fees: Mapping[str, float]):
+        self._shipping_fees = dict(shipping_fees)
+
+    def calculate(self, delivery_location: str) -&gt; float:
+        try:
+            return self._shipping_fees[delivery_location]
+        except KeyError as exc:
+            raise ValueError(f&quot;unsupported delivery location: {delivery_location}&quot;) from exc
+</code></pre>
+    </article>
+    
+    <article class="card" id="tax">
+      <div class="card-head">
+        <div><h3>tax.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>from __future__ import annotations
+
+import math
+from collections.abc import Mapping
+
+
+class TaxCalculator:
+    def __init__(self, tax_rate_percent: Mapping[str, float]):
+        self._tax_rate_percent = dict(tax_rate_percent)
+
+    def calculate(self, net_cost: float, delivery_location: str) -&gt; float:
+        if not math.isfinite(net_cost) or net_cost &lt; 0:
+            raise ValueError(&quot;net cost must be a finite, nonnegative number&quot;)
+        try:
+            rate_percent = self._tax_rate_percent[delivery_location]
+        except KeyError as exc:
+            raise ValueError(f&quot;unsupported delivery location: {delivery_location}&quot;) from exc
+        return net_cost * rate_percent / 100.0
+</code></pre>
+    </article>
+    
+    <article class="card" id="total">
+      <div class="card-head">
+        <div><h3>total.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>import math
+
+
+class TotalCostCalculator:
+    def calculate(self, net_cost: float, shipping_cost: float, tax_amount: float) -&gt; float:
+        values = (net_cost, shipping_cost, tax_amount)
+        if any(not math.isfinite(value) or value &lt; 0 for value in values):
+            raise ValueError(&quot;total inputs must be finite and nonnegative&quot;)
+        return net_cost + shipping_cost + tax_amount
+</code></pre>
+    </article>
+    
+
+  <h2 class="section-title">Test Files</h2>
+  <p class="section-note">Integration and unit test modules.</p>
+  
+    <article class="card" id="test-integration">
+      <div class="card-head">
+        <div><h3>test_integration.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>from __future__ import annotations
+
+import sys
+from datetime import date
+from pathlib import Path
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / &quot;src&quot;))
+
+from parvocure.data_loader import load_reference_data
+from parvocure.models import CheckoutRequest
+from parvocure.order_history import OrderHistory
+from parvocure.service import CheckoutService
+
+
+DATA = load_reference_data(ROOT / &quot;data&quot;)
+
+
+class CheckoutIntegrationTests(unittest.TestCase):
+    def test_us_end_to_end(self):
+        service = CheckoutService(DATA)
+        quote = service.checkout(
+            CheckoutRequest(
+                owner_id=&quot;owner-1&quot;,
+                owner_location=&quot;Canada&quot;,
+                delivery_location=&quot;California&quot;,
+                dog_breed=&quot;Labrador Retriever&quot;,
+                dog_age_years=2,
+                dog_weight_kg=20,
+                coupons=(&quot;10% Off&quot;,),
+                purchase_date=date(2026, 3, 10),
+            )
+        )
+        self.assertAlmostEqual(quote.dosage_ml, 37.96)
+        self.assertEqual(quote.dosage_display_unit, &quot;fl oz&quot;)
+        self.assertAlmostEqual(quote.net_cost, 1.1552234433480002)
+        self.assertAlmostEqual(quote.total_cost, 6.811912969633067)
+
+    def test_non_us_uses_ml_and_delivery_location(self):
+        service = CheckoutService(DATA)
+        quote = service.checkout(
+            CheckoutRequest(
+                owner_id=&quot;owner-2&quot;,
+                owner_location=&quot;California&quot;,
+                delivery_location=&quot;Canada&quot;,
+                dog_breed=&quot;Beagle&quot;,
+                dog_age_years=4,
+                dog_weight_kg=10,
+                coupons=(),
+                purchase_date=date(2026, 4, 1),
+            )
+        )
+        self.assertEqual(quote.dosage_display_unit, &quot;mL&quot;)
+        self.assertAlmostEqual(quote.dosage_display_value, quote.dosage_ml)
+        self.assertAlmostEqual(quote.shipping_cost, 15.5901966)
+        self.assertGreater(quote.tax_amount, 0)
+
+    def test_order_limit_and_coupon_history_cross_components(self):
+        history = OrderHistory()
+        service = CheckoutService(DATA, history)
+        first = CheckoutRequest(
+            &quot;owner-3&quot;,
+            &quot;California&quot;,
+            &quot;Utah&quot;,
+            &quot;Poodle&quot;,
+            3,
+            12,
+            (&quot;10% Off&quot;,),
+            date(2026, 5, 1),
+        )
+        service.checkout(first)
+
+        with self.assertRaises(ValueError):
+            service.checkout(
+                CheckoutRequest(
+                    &quot;owner-3&quot;,
+                    &quot;California&quot;,
+                    &quot;Utah&quot;,
+                    &quot;Poodle&quot;,
+                    3,
+                    12,
+                    (),
+                    date(2026, 5, 20),
+                )
+            )
+
+        # Exactly 30 days later is allowed by the dose rule, but the same coupon
+        # is still in the same calendar month here only if the month matches.
+        quote = service.checkout(
+            CheckoutRequest(
+                &quot;owner-3&quot;,
+                &quot;California&quot;,
+                &quot;Utah&quot;,
+                &quot;Poodle&quot;,
+                3,
+                12,
+                (&quot;$10 Off&quot;,),
+                date(2026, 5, 31),
+            )
+        )
+        self.assertEqual(quote.tax_amount, 0.0)
+
+
+if __name__ == &quot;__main__&quot;:
+    unittest.main()
+</code></pre>
+    </article>
+    
+    <article class="card" id="test-unit">
+      <div class="card-head">
+        <div><h3>test_unit.py</h3></div>
+        <a href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>from __future__ import annotations
+
+import sys
+from datetime import date
+from pathlib import Path
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / &quot;src&quot;))
+
+from parvocure.data_loader import load_reference_data
+from parvocure.discount import DiscountCalculator
+from parvocure.dog_age import DogAgeCalculator
+from parvocure.dosage import DosageCalculator
+from parvocure.medicine_cost import MedicineCostCalculator
+from parvocure.order_history import OrderHistory
+from parvocure.shipping import ShippingCalculator
+from parvocure.tax import TaxCalculator
+from parvocure.total import TotalCostCalculator
+
+
+DATA = load_reference_data(ROOT / &quot;data&quot;)
+
+
+class DogAgeTests(unittest.TestCase):
+    def test_fractional_age(self):
+        self.assertAlmostEqual(DogAgeCalculator().calculate(2.5), 17.5)
+
+    def test_negative_age_rejected(self):
+        with self.assertRaises(ValueError):
+            DogAgeCalculator().calculate(-0.1)
+
+
+class DosageTests(unittest.TestCase):
+    def setUp(self):
+        self.calc = DosageCalculator(DATA.breed_base)
+
+    def test_formula_uses_human_age(self):
+        self.assertAlmostEqual(
+            self.calc.calculate_ml(&quot;Labrador Retriever&quot;, 2, 20), 37.96
+        )
+        self.assertNotEqual(
+            self.calc.calculate_ml(&quot;Labrador Retriever&quot;, 2, 20),
+            self.calc.calculate_ml(&quot;Labrador Retriever&quot;, 5, 20),
+        )
+
+    def test_unknown_breed_rejected(self):
+        with self.assertRaises(ValueError):
+            self.calc.calculate_ml(&quot;Definitely Not A Breed&quot;, 2, 20)
+
+
+class MedicineCostTests(unittest.TestCase):
+    def test_price_per_ml(self):
+        self.assertAlmostEqual(MedicineCostCalculator().calculate(100), 3.3814057)
+
+    def test_negative_dosage_rejected(self):
+        with self.assertRaises(ValueError):
+            MedicineCostCalculator().calculate(-1)
+
+
+class DiscountTests(unittest.TestCase):
+    def setUp(self):
+        self.calc = DiscountCalculator()
+        self.history = OrderHistory()
+
+    def test_coupons_are_sequential(self):
+        first_ten_then_percent = self.calc.calculate(
+            100, (&quot;$10 Off&quot;, &quot;10% Off&quot;), &quot;A&quot;, date(2026, 3, 2), self.history
+        )
+        percent_then_ten = self.calc.calculate(
+            100, (&quot;10% Off&quot;, &quot;$10 Off&quot;), &quot;B&quot;, date(2026, 3, 2), self.history
+        )
+        self.assertAlmostEqual(first_ten_then_percent, 81)
+        self.assertAlmostEqual(percent_then_ten, 80)
+
+    def test_coupon_reuse_is_calendar_month(self):
+        self.history.record(&quot;A&quot;, 90, 0, 5, date(2026, 1, 2), (&quot;10% Off&quot;,))
+        with self.assertRaises(ValueError):
+            self.calc.calculate(
+                100, (&quot;10% Off&quot;,), &quot;A&quot;, date(2026, 1, 31), self.history
+            )
+        self.assertAlmostEqual(
+            self.calc.calculate(
+                100, (&quot;10% Off&quot;,), &quot;A&quot;, date(2026, 2, 1), self.history
+            ),
+            90,
+        )
+
+    def test_bogo_and_duplicate_coupon_are_rejected(self):
+        with self.assertRaises(ValueError):
+            self.calc.calculate(100, (&quot;BOGO&quot;,), &quot;A&quot;, date(2026, 2, 1), self.history)
+        with self.assertRaises(ValueError):
+            self.calc.calculate(
+                100,
+                (&quot;10% Off&quot;, &quot;10% Off&quot;),
+                &quot;A&quot;,
+                date(2026, 2, 1),
+                self.history,
+            )
+
+
+class ShippingTests(unittest.TestCase):
+    def setUp(self):
+        self.calc = ShippingCalculator(DATA.shipping_fee)
+
+    def test_shipping_is_fee_only(self):
+        self.assertAlmostEqual(self.calc.calculate(&quot;Utah&quot;), 5.44925658)
+
+    def test_combined_row_is_split(self):
+        self.assertAlmostEqual(
+            self.calc.calculate(&quot;Pennsylvania&quot;), self.calc.calculate(&quot;Rhode Island&quot;)
+        )
+
+
+class TaxTests(unittest.TestCase):
+    def setUp(self):
+        self.calc = TaxCalculator(DATA.tax_rate_percent)
+
+    def test_table_value_is_percent(self):
+        self.assertAlmostEqual(self.calc.calculate(100, &quot;California&quot;), 5.59208841)
+
+    def test_zero_tax_is_valid(self):
+        self.assertEqual(self.calc.calculate(12.34, &quot;Utah&quot;), 0.0)
+
+
+class TotalTests(unittest.TestCase):
+    def test_total_includes_shipping(self):
+        self.assertAlmostEqual(TotalCostCalculator().calculate(10, 5, 1), 16)
+
+    def test_no_internal_rounding(self):
+        self.assertAlmostEqual(
+            TotalCostCalculator().calculate(1.111, 2.222, 3.333), 6.666
+        )
+
+
+class OrderHistoryTests(unittest.TestCase):
+    def test_rolling_30_day_boundary(self):
+        history = OrderHistory()
+        history.record(&quot;A&quot;, 10, 1, 5, date(2026, 1, 15), ())
+        self.assertTrue(history.has_order_within_30_days(&quot;A&quot;, date(2026, 2, 10)))
+        self.assertFalse(history.has_order_within_30_days(&quot;A&quot;, date(2026, 2, 14)))
+
+    def test_persists_required_cost_fields(self):
+        history = OrderHistory()
+        history.record(&quot;A&quot;, 10.5, 1.2, 5.3, date(2026, 1, 15), (&quot;10% Off&quot;,))
+        record = history.all_records()[0]
+        self.assertEqual(record.owner_id, &quot;A&quot;)
+        self.assertEqual(record.net_cost, 10.5)
+        self.assertEqual(record.tax_amount, 1.2)
+        self.assertEqual(record.shipping_cost, 5.3)
+        self.assertEqual(record.purchase_date, date(2026, 1, 15))
+
+
+if __name__ == &quot;__main__&quot;:
+    unittest.main()
+</code></pre>
+    </article>
+</body>

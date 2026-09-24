@@ -1,0 +1,899 @@
+---
+layout: default
+title: ParvoCure Java Reference Code
+subtitle: One exemplar of ParvoCure in Java
+---
+<body>
+    <nav class="toc" aria-label="Code file navigation">
+      <section class="toc-section">
+        <h2>Main Classes</h2>
+        <a href="#checkoutservice">CheckoutService.java</a>
+<a href="#dataloader">DataLoader.java</a>
+<a href="#datatables">DataTables.java</a>
+<a href="#checkoutrequest">CheckoutRequest.java</a>
+<a href="#orderquote">OrderQuote.java</a>
+<a href="#orderhistory">OrderHistory.java</a>
+      </section>
+      <section class="toc-section">
+        <h2>Smaller Classes</h2>
+        <a href="#historyrecord">HistoryRecord.java</a>
+<a href="#dogagecalculator">DogAgeCalculator.java</a>
+<a href="#dosagecalculator">DosageCalculator.java</a>
+<a href="#medicinecostcalculator">MedicineCostCalculator.java</a>
+<a href="#discountcalculator">DiscountCalculator.java</a>
+<a href="#shippingcalculator">ShippingCalculator.java</a>
+<a href="#taxcalculator">TaxCalculator.java</a>
+<a href="#totalcostcalculator">TotalCostCalculator.java</a>
+      </section>
+      <section class="toc-section">
+        <h2>Test Files</h2>
+        <a href="#integrationtests">IntegrationTests.java</a>
+<a href="#unittests">UnitTests.java</a>
+<a href="#testsupport">TestSupport.java</a>
+      </section>
+    </nav>
+
+    <h2 class="section-heading">Main Classes</h2>
+    <p class="section-note">Core orchestration, data loading, requests, results, and history.</p>
+    
+    <article class="code-card" id="checkoutservice">
+      <div class="code-header">
+        <div>
+          <h3>CheckoutService.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+import java.nio.file.Path;
+import java.util.List;
+
+public class CheckoutService {
+    private static final double ML_PER_FL_OZ = 29.5735295625;
+
+    private final OrderHistory history;
+    private final DogAgeCalculator age;
+    private final DosageCalculator dosage;
+    private final MedicineCostCalculator medicineCost;
+    private final DiscountCalculator discount;
+    private final ShippingCalculator shipping;
+    private final TaxCalculator tax;
+    private final TotalCostCalculator total;
+    private final DataTables data;
+
+    public List&lt;String&gt; usStates = List.of(
+        &quot;Alabama&quot;,
+        &quot;Alaska&quot;,
+        &quot;Arizona&quot;,
+        &quot;Arkansas&quot;,
+        &quot;California&quot;,
+        &quot;Colorado&quot;,
+        &quot;Connecticut&quot;,
+        &quot;Delaware&quot;,
+        &quot;Florida&quot;,
+        &quot;Georgia&quot;,
+        &quot;Hawaii&quot;,
+        &quot;Idaho&quot;,
+        &quot;Illinois&quot;,
+        &quot;Indiana&quot;,
+        &quot;Iowa&quot;,
+        &quot;Kansas&quot;,
+        &quot;Kentucky&quot;,
+        &quot;Louisiana&quot;,
+        &quot;Maine&quot;,
+        &quot;Maryland&quot;,
+        &quot;Massachusetts&quot;,
+        &quot;Michigan&quot;,
+        &quot;Minnesota&quot;,
+        &quot;Mississippi&quot;,
+        &quot;Missouri&quot;,
+        &quot;Montana&quot;,
+        &quot;Nebraska&quot;,
+        &quot;Nevada&quot;,
+        &quot;New Hampshire&quot;,
+        &quot;New Jersey&quot;,
+        &quot;New Mexico&quot;,
+        &quot;New York&quot;,
+        &quot;North Carolina&quot;,
+        &quot;North Dakota&quot;,
+        &quot;Ohio&quot;,
+        &quot;Oklahoma&quot;,
+        &quot;Oregon&quot;,
+        &quot;Pennsylvania&quot;,
+        &quot;Rhode Island&quot;,
+        &quot;South Carolina&quot;,
+        &quot;South Dakota&quot;,
+        &quot;Tennessee&quot;,
+        &quot;Texas&quot;,
+        &quot;Utah&quot;,
+        &quot;Vermont&quot;,
+        &quot;Virginia&quot;,
+        &quot;Washington&quot;,
+        &quot;West Virginia&quot;,
+        &quot;Wisconsin&quot;,
+        &quot;Wyoming&quot;
+    );
+
+    public CheckoutService() {
+        this(DataLoader.load(Path.of(&quot;data&quot;)), new OrderHistory());
+    }
+
+    public CheckoutService(DataTables data) {
+        this(data, new OrderHistory());
+    }
+
+    public CheckoutService(DataTables data, OrderHistory history) {
+        this.data = data;
+        this.history = history;
+        this.age = new DogAgeCalculator();
+        this.dosage = new DosageCalculator(data.breedBase());
+        this.medicineCost = new MedicineCostCalculator();
+        this.discount = new DiscountCalculator();
+        this.shipping = new ShippingCalculator(data.shippingFee());
+        this.tax = new TaxCalculator(data.taxRatePercent());
+        this.total = new TotalCostCalculator();
+    }
+
+    public OrderQuote checkout(CheckoutRequest request) {
+        validateRequest(request);
+        if (history.hasOrderWithin30Days(request.ownerId(), request.purchaseDate())) {
+            throw new IllegalArgumentException(
+                    &quot;owner already ordered a dose within the previous 30 days&quot;);
+        }
+
+        double dogAgeDisplay = age.calculate(request.dogAgeYears());
+        double dosageMl = dosage.calculateMl(
+                request.dogBreed(), request.dogAgeYears(), request.dogWeightKg());
+        double medicine = medicineCost.calculate(dosageMl);
+        double net = discount.calculate(
+                medicine,
+                request.coupons(),
+                request.ownerId(),
+                request.purchaseDate(),
+                history);
+        double discountAmount = medicine - net;
+        double shippingCost = shipping.calculate(request.deliveryLocation());
+        double taxAmount = tax.calculate(net, request.deliveryLocation());
+        double totalCost = total.calculate(net, shippingCost, taxAmount);
+
+        boolean us = usStates.contains(request.ownerLocation());
+        double dosageDisplayValue = us ? dosageMl / ML_PER_FL_OZ : dosageMl;
+        String dosageDisplayUnit = us ? &quot;fl oz&quot; : &quot;mL&quot;;
+
+        history.record(
+                request.ownerId(),
+                net,
+                taxAmount,
+                shippingCost,
+                request.purchaseDate(),
+                request.coupons());
+
+        return new OrderQuote(
+                dogAgeDisplay,
+                dosageMl,
+                dosageDisplayValue,
+                dosageDisplayUnit,
+                medicine,
+                discountAmount,
+                net,
+                shippingCost,
+                taxAmount,
+                totalCost);
+    }
+
+    private static void validateRequest(CheckoutRequest request) {
+        if (request == null) throw new IllegalArgumentException(&quot;request is required&quot;);
+        if (request.ownerId() == null || request.ownerId().isBlank()) {
+            throw new IllegalArgumentException(&quot;ownerId is required&quot;);
+        }
+        if (request.ownerLocation() == null || request.ownerLocation().isBlank()) {
+            throw new IllegalArgumentException(&quot;ownerLocation is required&quot;);
+        }
+        if (request.deliveryLocation() == null || request.deliveryLocation().isBlank()) {
+            throw new IllegalArgumentException(&quot;deliveryLocation is required&quot;);
+        }
+        if (request.dogBreed() == null || request.dogBreed().isBlank()) {
+            throw new IllegalArgumentException(&quot;dogBreed is required&quot;);
+        }
+        if (request.coupons() == null) {
+            throw new IllegalArgumentException(&quot;coupons are required&quot;);
+        }
+        if (request.purchaseDate() == null) {
+            throw new IllegalArgumentException(&quot;purchaseDate is required&quot;);
+        }
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="dataloader">
+      <div class="code-header">
+        <div>
+          <h3>DataLoader.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public final class DataLoader {
+
+    private DataLoader() {}
+
+    public static DataTables load(Path dataDir) {
+        try {
+            Map&lt;String, Double&gt; breedBase = loadBreedBase(dataDir.resolve(&quot;breed_dosage.csv&quot;));
+            LocationMaps locations = loadLocations(dataDir.resolve(&quot;location_rate.csv&quot;));
+            return new DataTables(
+                    breedBase,
+                    locations.taxRates,
+                    locations.shippingFees);
+        } catch (IOException e) {
+            throw new IllegalStateException(&quot;Unable to load reference data&quot;, e);
+        }
+    }
+
+    private static Map&lt;String, Double&gt; loadBreedBase(Path path) throws IOException {
+        Map&lt;String, Double&gt; result = new HashMap&lt;&gt;();
+        List&lt;String&gt; lines = Files.readAllLines(path);
+        for (int i = 1; i &lt; lines.size(); i++) {
+            if (lines.get(i).isBlank()) continue;
+            String[] parts = lines.get(i).split(&quot;,&quot;, -1);
+            result.put(parts[0], Double.parseDouble(parts[1]));
+        }
+        return result;
+    }
+
+    private static LocationMaps loadLocations(Path path) throws IOException {
+        Map&lt;String, Double&gt; taxRates = new HashMap&lt;&gt;();
+        Map&lt;String, Double&gt; shippingFees = new HashMap&lt;&gt;();
+        List&lt;String&gt; lines = Files.readAllLines(path);
+        for (int i = 1; i &lt; lines.size(); i++) {
+            if (lines.get(i).isBlank()) continue;
+            String[] parts = lines.get(i).split(&quot;,&quot;, -1);
+            String location = parts[0];
+            double tax = Double.parseDouble(parts[1]);
+            double shipping = Double.parseDouble(parts[2]);
+
+            Set&lt;String&gt; normalized = new HashSet&lt;&gt;();
+            if (location.equals(&quot;PennsylvaniaRhode Island&quot;)) {
+                normalized.add(&quot;Pennsylvania&quot;);
+                normalized.add(&quot;Rhode Island&quot;);
+            } else {
+                normalized.add(location);
+            }
+
+            for (String key : normalized) {
+                taxRates.put(key, tax);
+                shippingFees.put(key, shipping);
+            }
+        }
+        return new LocationMaps(taxRates, shippingFees);
+    }
+
+    private record LocationMaps(
+            Map&lt;String, Double&gt; taxRates,
+            Map&lt;String, Double&gt; shippingFees) {}
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="datatables">
+      <div class="code-header">
+        <div>
+          <h3>DataTables.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+import java.util.Map;
+
+public record DataTables(
+        Map&lt;String, Double&gt; breedBase,
+        Map&lt;String, Double&gt; taxRatePercent,
+        Map&lt;String, Double&gt; shippingFee) {
+
+    public DataTables {
+        breedBase = Map.copyOf(breedBase);
+        taxRatePercent = Map.copyOf(taxRatePercent);
+        shippingFee = Map.copyOf(shippingFee);
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="checkoutrequest">
+      <div class="code-header">
+        <div>
+          <h3>CheckoutRequest.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public record CheckoutRequest(
+        String ownerId,
+        String ownerLocation,
+        String deliveryLocation,
+        String dogBreed,
+        double dogAgeYears,
+        double dogWeightKg,
+        List&lt;String&gt; coupons,
+        LocalDate purchaseDate) {
+
+    public CheckoutRequest {
+        coupons = List.copyOf(coupons);
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="orderquote">
+      <div class="code-header">
+        <div>
+          <h3>OrderQuote.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+public record OrderQuote(
+        double dogAgeDisplay,
+        double dosageMl,
+        double dosageDisplayValue,
+        String dosageDisplayUnit,
+        double medicineCost,
+        double discountAmount,
+        double netCost,
+        double shippingCost,
+        double taxAmount,
+        double totalCost) {}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="orderhistory">
+      <div class="code-header">
+        <div>
+          <h3>OrderHistory.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+
+public class OrderHistory {
+    private final List&lt;HistoryRecord&gt; records = new ArrayList&lt;&gt;();
+    public OrderHistory(){}
+
+    public boolean hasOrderWithin30Days(String ownerId, LocalDate purchaseDate) {
+        for (HistoryRecord record : records) {
+            if (!record.ownerId().equals(ownerId)) continue;
+            long days = ChronoUnit.DAYS.between(record.purchaseDate(), purchaseDate);
+            if (days &gt;= 0 &amp;&amp; days &lt; 30) return true;
+        }
+        return false;
+    }
+
+    public boolean couponUsedInCalendarMonth(
+            String ownerId, String coupon, LocalDate purchaseDate) {
+        for (HistoryRecord record : records) {
+            if (record.ownerId().equals(ownerId)
+                    &amp;&amp; record.coupons().contains(coupon)
+                    &amp;&amp; record.purchaseDate().getYear() == purchaseDate.getYear()
+                    &amp;&amp; record.purchaseDate().getMonthValue() == purchaseDate.getMonthValue()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void record(
+            String ownerId,
+            double netCost,
+            double taxAmount,
+            double shippingCost,
+            LocalDate purchaseDate,
+            List&lt;String&gt; coupons) {
+        records.add(new HistoryRecord(
+                ownerId, netCost, taxAmount, shippingCost, purchaseDate, coupons));
+    }
+
+    public List&lt;HistoryRecord&gt; allRecords() {
+        return List.copyOf(records);
+    }
+}
+</code></pre>
+    </article>
+    
+
+    <h2 class="section-heading">Smaller Classes</h2>
+    <p class="section-note">Focused calculator and supporting data classes.</p>
+    
+    <article class="code-card" id="historyrecord">
+      <div class="code-header">
+        <div>
+          <h3>HistoryRecord.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+import java.time.LocalDate;
+import java.util.List;
+
+public record HistoryRecord(
+        String ownerId,
+        double netCost,
+        double taxAmount,
+        double shippingCost,
+        LocalDate purchaseDate,
+        List&lt;String&gt; coupons) {
+
+    public HistoryRecord {
+        coupons = List.copyOf(coupons);
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="dogagecalculator">
+      <div class="code-header">
+        <div>
+          <h3>DogAgeCalculator.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+public class DogAgeCalculator {
+    public double calculate(double humanAgeYears) {
+        if (!Double.isFinite(humanAgeYears) || humanAgeYears &lt; 0) {
+            throw new IllegalArgumentException(&quot;dog age must be finite and nonnegative&quot;);
+        }
+        return humanAgeYears * 7.0;
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="dosagecalculator">
+      <div class="code-header">
+        <div>
+          <h3>DosageCalculator.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+import java.util.Map;
+
+public class DosageCalculator {
+    private final Map&lt;String, Double&gt; breedBase;
+
+    public DosageCalculator(Map&lt;String, Double&gt; breedBase) {
+        this.breedBase = Map.copyOf(breedBase);
+    }
+
+    public double calculateMl(String breed, double humanAgeYears, double weightKg) {
+        Double base = breedBase.get(breed);
+        if (base == null) {
+            throw new IllegalArgumentException(&quot;unknown breed: &quot; + breed);
+        }
+        if (!Double.isFinite(humanAgeYears) || humanAgeYears &lt; 0) {
+            throw new IllegalArgumentException(&quot;dog age must be finite and nonnegative&quot;);
+        }
+        if (!Double.isFinite(weightKg) || weightKg &lt;= 0) {
+            throw new IllegalArgumentException(&quot;dog weight must be finite and positive&quot;);
+        }
+
+        double dosageMl = base * ((weightKg + 5.0) - humanAgeYears / 3.0);
+        if (dosageMl &lt; 0) {
+            throw new IllegalArgumentException(&quot;the dosage formula produced a negative dosage&quot;);
+        }
+        return dosageMl;
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="medicinecostcalculator">
+      <div class="code-header">
+        <div>
+          <h3>MedicineCostCalculator.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+public class MedicineCostCalculator {
+    public static final double PRICE_PER_ML = 0.033814057;
+
+    public double calculate(double dosageMl) {
+        if (!Double.isFinite(dosageMl) || dosageMl &lt; 0) {
+            throw new IllegalArgumentException(&quot;dosage must be finite and nonnegative&quot;);
+        }
+        return dosageMl * PRICE_PER_ML;
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="discountcalculator">
+      <div class="code-header">
+        <div>
+          <h3>DiscountCalculator.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class DiscountCalculator {
+    private static final Set&lt;String&gt; VALID = Set.of(&quot;10% Off&quot;, &quot;$10 Off&quot;, &quot;BOGO&quot;);
+
+    public double calculate(
+            double medicineCost,
+            List&lt;String&gt; coupons,
+            String ownerId,
+            LocalDate purchaseDate,
+            OrderHistory history) {
+        if (!Double.isFinite(medicineCost) || medicineCost &lt; 0) {
+            throw new IllegalArgumentException(&quot;medicine cost must be finite and nonnegative&quot;);
+        }
+        if (coupons.size() &gt; 2) {
+            throw new IllegalArgumentException(&quot;maximum of two coupons per transaction&quot;);
+        }
+        if (new HashSet&lt;&gt;(coupons).size() != coupons.size()) {
+            throw new IllegalArgumentException(
+                    &quot;a coupon type may only be used once per calendar month&quot;);
+        }
+
+        double net = medicineCost;
+        for (String coupon : coupons) {
+            if (!VALID.contains(coupon)) {
+                throw new IllegalArgumentException(&quot;unknown coupon: &quot; + coupon);
+            }
+            if (coupon.equals(&quot;BOGO&quot;)) {
+                throw new IllegalArgumentException(&quot;BOGO is unavailable in this release&quot;);
+            }
+            if (history.couponUsedInCalendarMonth(ownerId, coupon, purchaseDate)) {
+                throw new IllegalArgumentException(&quot;coupon already used this calendar month&quot;);
+            }
+
+            if (coupon.equals(&quot;10% Off&quot;)) {
+                net *= 0.90;
+            } else if (coupon.equals(&quot;$10 Off&quot;)) {
+                net = Math.max(0.0, net - 10.0);
+            }
+        }
+        return net;
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="shippingcalculator">
+      <div class="code-header">
+        <div>
+          <h3>ShippingCalculator.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+import java.util.Map;
+
+public class ShippingCalculator {
+    private final Map&lt;String, Double&gt; shippingFees;
+
+    public ShippingCalculator(Map&lt;String, Double&gt; shippingFees) {
+        this.shippingFees = Map.copyOf(shippingFees);
+    }
+
+    public double calculate(String deliveryLocation) {
+        Double fee = shippingFees.get(deliveryLocation);
+        if (fee == null) {
+            throw new IllegalArgumentException(
+                    &quot;unsupported delivery location: &quot; + deliveryLocation);
+        }
+        return fee;
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="taxcalculator">
+      <div class="code-header">
+        <div>
+          <h3>TaxCalculator.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+import java.util.Map;
+
+public class TaxCalculator {
+    private final Map&lt;String, Double&gt; taxRatePercent;
+
+    public TaxCalculator(Map&lt;String, Double&gt; taxRatePercent) {
+        this.taxRatePercent = Map.copyOf(taxRatePercent);
+    }
+
+    public double calculate(double netCost, String deliveryLocation) {
+        if (!Double.isFinite(netCost) || netCost &lt; 0) {
+            throw new IllegalArgumentException(&quot;net cost must be finite and nonnegative&quot;);
+        }
+        Double rate = taxRatePercent.get(deliveryLocation);
+        if (rate == null) {
+            throw new IllegalArgumentException(
+                    &quot;unsupported delivery location: &quot; + deliveryLocation);
+        }
+        return netCost * rate / 100.0;
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="totalcostcalculator">
+      <div class="code-header">
+        <div>
+          <h3>TotalCostCalculator.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure;
+
+public class TotalCostCalculator {
+    public double calculate(double netCost, double shippingCost, double taxAmount) {
+        double[] values = {netCost, shippingCost, taxAmount};
+        for (double value : values) {
+            if (!Double.isFinite(value) || value &lt; 0) {
+                throw new IllegalArgumentException(
+                        &quot;total inputs must be finite and nonnegative&quot;);
+            }
+        }
+        return netCost + shippingCost + taxAmount;
+    }
+}
+</code></pre>
+    </article>
+    
+
+    <h2 class="section-heading">Test Files</h2>
+    <p class="section-note">Integration tests, unit tests, and the small test-support helper.</p>
+    
+    <article class="code-card" id="integrationtests">
+      <div class="code-header">
+        <div>
+          <h3>IntegrationTests.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure.tests;
+
+import java.nio.file.Path;
+import java.time.LocalDate;
+import java.util.List;
+import parvocure.*;
+
+public class IntegrationTests {
+    public static void main(String[] args) {
+        TestSupport t = new TestSupport();
+        DataTables data = DataLoader.load(Path.of(&quot;/Users/jessica/yauney/assets/java/parvocure/tests&quot;));
+
+        CheckoutService usService = new CheckoutService(data);
+        OrderQuote us = usService.checkout(new CheckoutRequest(
+                &quot;owner-1&quot;, &quot;California&quot;, &quot;California&quot;, &quot;Labrador Retriever&quot;,
+                2, 20, List.of(&quot;10% Off&quot;), LocalDate.of(2026, 3, 10)));
+        t.near(us.dosageMl(), 37.96, 1e-12, &quot;integration US dosage&quot;);
+        t.equal(us.dosageDisplayUnit(), &quot;fl oz&quot;, &quot;integration US display unit&quot;);
+        t.near(us.netCost(), 1.1552234433480002, 1e-12, &quot;integration US net&quot;);
+        t.near(us.totalCost(), 6.811912969633067, 1e-12, &quot;integration US total&quot;);
+
+        CheckoutService internationalService = new CheckoutService(data);
+        OrderQuote international = internationalService.checkout(new CheckoutRequest(
+                &quot;owner-2&quot;, &quot;Canada&quot;, &quot;Canada&quot;, &quot;Beagle&quot;,
+                4, 10, List.of(), LocalDate.of(2026, 4, 1)));
+        t.equal(international.dosageDisplayUnit(), &quot;mL&quot;, &quot;integration non-US unit&quot;);
+        t.near(international.dosageDisplayValue(), international.dosageMl(), 1e-12,
+                &quot;integration non-US display value&quot;);
+        t.near(international.shippingCost(), 15.5901966, 1e-12,
+                &quot;integration uses delivery location&quot;);
+        t.ok(international.taxAmount() &gt; 0, &quot;integration non-US tax&quot;);
+
+        OrderHistory history = new OrderHistory();
+        CheckoutService historyService = new CheckoutService(data, history);
+        historyService.checkout(new CheckoutRequest(
+                &quot;owner-3&quot;, &quot;California&quot;, &quot;Utah&quot;, &quot;Poodle&quot;,
+                3, 12, List.of(&quot;10% Off&quot;), LocalDate.of(2026, 5, 1)));
+        t.throwsIA(() -&gt; historyService.checkout(new CheckoutRequest(
+                        &quot;owner-3&quot;, &quot;California&quot;, &quot;Utah&quot;, &quot;Poodle&quot;,
+                        3, 12, List.of(), LocalDate.of(2026, 5, 20))),
+                &quot;integration rolling order limit&quot;);
+        OrderQuote boundary = historyService.checkout(new CheckoutRequest(
+                &quot;owner-3&quot;, &quot;California&quot;, &quot;Utah&quot;, &quot;Poodle&quot;,
+                3, 12, List.of(&quot;$10 Off&quot;), LocalDate.of(2026, 5, 31)));
+        t.near(boundary.taxAmount(), 0, 1e-12, &quot;integration zero tax at boundary&quot;);
+
+        t.finish();
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="unittests">
+      <div class="code-header">
+        <div>
+          <h3>UnitTests.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure.tests;
+
+import java.nio.file.Path;
+import java.time.LocalDate;
+import java.util.List;
+import parvocure.*;
+
+public class UnitTests {
+    public static void main(String[] args) {
+        TestSupport t = new TestSupport();
+        DataTables data = DataLoader.load(Path.of(&quot;/Users/jessica/yauney/assets/java/parvocure/tests&quot;));
+
+        DogAgeCalculator age = new DogAgeCalculator();
+        t.near(age.calculate(2.5), 17.5, 1e-12, &quot;dog age fractional&quot;);
+        t.throwsIA(() -&gt; age.calculate(-0.1), &quot;dog age rejects negative&quot;);
+
+        DosageCalculator dosage = new DosageCalculator(data.breedBase());
+        t.near(dosage.calculateMl(&quot;Labrador Retriever&quot;, 2, 20), 37.96, 1e-12,
+                &quot;dosage formula&quot;);
+        t.ok(dosage.calculateMl(&quot;Labrador Retriever&quot;, 2, 20)
+                        != dosage.calculateMl(&quot;Labrador Retriever&quot;, 5, 20),
+                &quot;dosage uses age&quot;);
+        t.throwsIA(() -&gt; dosage.calculateMl(&quot;No Such Breed&quot;, 2, 20),
+                &quot;dosage rejects unknown breed&quot;);
+
+        MedicineCostCalculator medicine = new MedicineCostCalculator();
+        t.near(medicine.calculate(100), 3.3814057, 1e-12, &quot;medicine price per ml&quot;);
+        t.throwsIA(() -&gt; medicine.calculate(-1), &quot;medicine rejects negative dosage&quot;);
+
+        OrderHistory history = new OrderHistory();
+        DiscountCalculator discount = new DiscountCalculator();
+        t.near(discount.calculate(100, List.of(&quot;$10 Off&quot;, &quot;10% Off&quot;), &quot;A&quot;,
+                        LocalDate.of(2026, 3, 2), history),
+                81, 1e-12, &quot;discount sequential order 1&quot;);
+        t.near(discount.calculate(100, List.of(&quot;10% Off&quot;, &quot;$10 Off&quot;), &quot;B&quot;,
+                        LocalDate.of(2026, 3, 2), history),
+                80, 1e-12, &quot;discount sequential order 2&quot;);
+        t.throwsIA(() -&gt; discount.calculate(10, List.of(&quot;BOGO&quot;), &quot;A&quot;,
+                        LocalDate.of(2026, 3, 2), history),
+                &quot;discount rejects BOGO&quot;);
+        t.throwsIA(() -&gt; discount.calculate(100, List.of(&quot;10% Off&quot;, &quot;10% Off&quot;), &quot;A&quot;,
+                        LocalDate.of(2026, 3, 2), history),
+                &quot;discount rejects duplicate type&quot;);
+
+        history.record(&quot;A&quot;, 90, 0, 5, LocalDate.of(2026, 1, 2), List.of(&quot;10% Off&quot;));
+        t.throwsIA(() -&gt; discount.calculate(100, List.of(&quot;10% Off&quot;), &quot;A&quot;,
+                        LocalDate.of(2026, 1, 31), history),
+                &quot;coupon reuse same calendar month&quot;);
+        t.near(discount.calculate(100, List.of(&quot;10% Off&quot;), &quot;A&quot;,
+                        LocalDate.of(2026, 2, 1), history),
+                90, 1e-12, &quot;coupon reusable next month&quot;);
+
+        ShippingCalculator shipping = new ShippingCalculator(data.shippingFee());
+        t.near(shipping.calculate(&quot;Utah&quot;), 5.44925658, 1e-12, &quot;shipping fee only&quot;);
+        t.near(shipping.calculate(&quot;Pennsylvania&quot;), shipping.calculate(&quot;Rhode Island&quot;),
+                1e-12, &quot;combined PA/RI row split&quot;);
+
+        TaxCalculator tax = new TaxCalculator(data.taxRatePercent());
+        t.near(tax.calculate(100, &quot;California&quot;), 5.59208841, 1e-12,
+                &quot;tax rate interpreted as percent&quot;);
+        t.near(tax.calculate(12.34, &quot;Utah&quot;), 0, 1e-12, &quot;zero tax valid&quot;);
+
+        TotalCostCalculator total = new TotalCostCalculator();
+        t.near(total.calculate(10, 5, 1), 16, 1e-12, &quot;total includes shipping&quot;);
+        t.near(total.calculate(1.111, 2.222, 3.333), 6.666, 1e-12,
+                &quot;total keeps precision&quot;);
+
+        OrderHistory rolling = new OrderHistory();
+        rolling.record(&quot;A&quot;, 10, 1, 5, LocalDate.of(2026, 1, 15), List.of());
+        t.ok(rolling.hasOrderWithin30Days(&quot;A&quot;, LocalDate.of(2026, 2, 10)),
+                &quot;rolling 30 day limit inside window&quot;);
+        t.ok(!rolling.hasOrderWithin30Days(&quot;A&quot;, LocalDate.of(2026, 2, 14)),
+                &quot;rolling 30 day exact boundary allowed&quot;);
+        HistoryRecord record = rolling.allRecords().get(0);
+        t.near(record.netCost(), 10, 1e-12, &quot;history persists net cost&quot;);
+        t.near(record.taxAmount(), 1, 1e-12, &quot;history persists tax&quot;);
+        t.near(record.shippingCost(), 5, 1e-12, &quot;history persists shipping&quot;);
+
+        t.finish();
+    }
+}
+</code></pre>
+    </article>
+    
+    <article class="code-card" id="testsupport">
+      <div class="code-header">
+        <div>
+          <h3>TestSupport.java</h3>
+        </div>
+        <a class="top-link" href="#top">Back to top ↑</a>
+      </div>
+      <pre><code>package parvocure.tests;
+import java.util.Objects;
+
+public final class TestSupport {
+    private int passed = 0;
+    private int failed = 0;
+
+    public void near(double actual, double expected, double epsilon, String name) {
+        if (Math.abs(actual - expected) &gt; epsilon) {
+            failed++;
+            System.out.printf(&quot;FAIL %s expected %.15f got %.15f%n&quot;, name, expected, actual);
+        } else {
+            passed++;
+            System.out.println(&quot;PASS &quot; + name);
+        }
+    }
+
+    public void equal(Object actual, Object expected, String name) {
+        if (!Objects.equals(actual, expected)) {
+            failed++;
+            System.out.printf(&quot;FAIL %s expected %s got %s%n&quot;, name, expected, actual);
+        } else {
+            passed++;
+            System.out.println(&quot;PASS &quot; + name);
+        }
+    }
+
+    public void ok(boolean condition, String name) {
+        if (!condition) {
+            failed++;
+            System.out.println(&quot;FAIL &quot; + name);
+        } else {
+            passed++;
+            System.out.println(&quot;PASS &quot; + name);
+        }
+    }
+
+    public void throwsIA(Runnable action, String name) {
+        try {
+            action.run();
+            failed++;
+            System.out.println(&quot;FAIL &quot; + name + &quot; expected IllegalArgumentException&quot;);
+        } catch (IllegalArgumentException expected) {
+            passed++;
+            System.out.println(&quot;PASS &quot; + name);
+        }
+    }
+
+    public void finish() {
+        System.out.printf(&quot;Passed: %d Failed: %d%n&quot;, passed, failed);
+        if (failed &gt; 0) System.exit(1);
+    }
+}
+</code></pre>
+    </article>
+
+</body>

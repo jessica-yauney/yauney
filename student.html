@@ -1,0 +1,140 @@
+---
+layout: default
+title: Student Brief
+subtitle: Example Student Assignment Text
+---
+
+<body>
+    <h1>ParvoCure Order System</h1>
+    <p >Your team has been tasked with building a (ficticious) ordering system for a new cure for parvo. Your job is to make sure the system meets these requirements.</p>
+    <h2>Your Specification</h2>
+    <p>Build each of the following pieces of code</p>
+    <ol>
+        <li><strong>Dog Age Calculator</strong>
+            <p>Input</p>
+                <ul>
+                    <li>Dog age in human terms</li>
+                </ul>
+            <p>Output</p>
+                <ul>
+                    <li>Dog age in dog terms</li>
+                </ul>
+            <p>Requirements: Take the dog age in “human” terms and convert it to “dog” terms. It should be precise because it
+                    will be used in dosage calculations.</p>
+        </li>
+        <li><strong>Dog Medicine Dosage Calculator</strong>
+            <p>Input</p>
+                <ul>
+                    <li>Dog breed</li>
+                    <li>Dog age</li>
+                    <li>Dog weight</li>
+                </ul>
+            <p>Output</p>
+                <ul>
+                    <li>Dosage amount</li>
+                </ul>
+                <p>Requirements: Can only order 1 dose per month. Dosage Amount = Base Dosage Amount from <a href="breeddosage.html">Breed to Base Dosage Map</a>
+                    × Dog Weight + 5.</p>
+            </ul>
+        </li>
+        <li><strong>Discount Calculator</strong>
+            <p>Input</p>
+                <ul>
+                    <li>Total_Cost</li>
+                    <li>coupons to be applied</li>
+                    <li>Dog_Owner_ID</li>
+                </ul>
+            <p>Output</p>
+                <ul>
+                    <li>Net_Cost</li>
+                </ul>
+                <p>Requirements: Medicine Cost − Discounts = Net Cost. A dog owner can only use coupons once per month. Maximum of 2
+                    coupons per transaction. Coupon options are BOGO, 10% Off, and $10 Off.</p>
+            </ul>
+        </li>
+        <li><strong>Shipping Calculator</strong>
+            <p>Input</p>
+                <ul>
+                    <li>Dog_Owner_Location</li>
+                </ul>
+            <p>Output</p>
+                <ul>
+                    <li>Shipping Cost</li>
+                </ul>
+                <p>Requirement: Shipping Fee = Net Cost + Shipping Fee from <a href="location-rate.html">Shipping Fee by Delivery Location</a> chart.</p>
+            </ul>
+        </li>
+        <li><strong>Tax Calculator</strong>
+            <p>Input</p>
+                <ul>
+                    <li>Net Cost</li>
+                    <li>Dog_Owner_Location</li>
+                </ul>
+            <p>Output</p>
+                <ul>
+                    <li>Tax Amount</li>
+                </ul>
+                <p>Requirement: Tax Amount = Net Cost × Tax Rate from <a href="location-rate.html">Tax Rate by Delivery Location</a> chart.</p>
+            </ul>
+        </li>
+        <li><strong>Total Cost Calculator</strong>
+            <p>Input</p>
+                <ul>
+                    <li>Shipping Cost</li>
+                    <li>Tax Amount</li>
+                    <li>Net Cost</li>
+                    <li>Medicine Cost</li>
+                    <li>Discount Amount</li>
+                </ul>
+            <p>Output</p>
+                <ul>
+                    <li>Total_Cost</li>
+                </ul>
+                <p>Requirement: Dosage Amount × X + Tax Amount + Net Cost as Gross Total Cost.</p>
+            </ul>
+        </li>
+        <li><strong>Order History</strong>
+            <p>Input</p>
+                <ul>
+                    <li>Dog_Owner_ID</li>
+                    <li>Net Cost</li>
+                    <li>Tax Amount</li>
+                    <li>Shipping Cost</li>
+                    <li>Purchase Date</li>
+                </ul>
+            <p>Output</p>
+                <ul>
+                    <li>The same data</li>
+                </ul>
+                <p>Requirement: Persist input.</p>
+            </ul>
+        </li>
+    <p>Your team may ask the Product Manager <strong>exactly three clarification questions</strong> during the
+        requirements window. Choose them carefully. After the window closes, unresolved details are your team's
+        responsibility: make a reasonable assumption, record it, and test it.</p>
+    <h2>What you submit</h2>
+    <div class="grid">
+        <div class="card">
+            <h3>1. Requirements Risk Log</h3>
+            <p>At least five risks, ambiguities, contradictions, or missing inputs. Mark the three you chose to ask
+                about.</p>
+        </div>
+        <div class="card">
+            <h3>2. Design</h3>
+            <p>A small architecture diagram plus one file/class per subsystem. You may refactor the starter interfaces
+                when a product decision requires it.</p>
+        </div>
+        <div class="card">
+            <h3>3. Implementation</h3>
+            <p>A working ordering pipeline.</p>
+        </div>
+        <div class="card">
+            <h3>4. Tests</h3>
+            <p>Unit tests for each subsystem and integration tests that exercise the full checkout path.</p>
+        </div>
+    </div>
+    <p><a href="python.html">Python starter</a></p>
+    <p><a href="java.html">Java starter</a></p>
+</body>
+
+</html>

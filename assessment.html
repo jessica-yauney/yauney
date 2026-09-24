@@ -1,0 +1,287 @@
+ ---
+layout: default
+title: Assessment Guide
+subtitle: Sample grading criteria including a rubric
+---
+
+<main class="wrap">
+  <nav aria-label="Assessment page navigation">
+    <a href="#purpose">Purpose</a>
+    <a href="#principles">Grading principles</a>
+    <a href="#rubric">Suggested rubric</a>
+    <a href="#evidence">Evidence to collect</a>
+    <a href="#ai">Generative AI</a>
+    <a href="#commentary">Instructor commentary</a>
+    <a href="#variants">Variations</a>
+  </nav>
+
+  <section id="purpose">
+    <h2>Purpose of the Assessment</h2>
+    <p class="lead">
+      This assignment is intentionally built around requirements that are incomplete, inconsistent, or ambiguous.
+      A successful submission should therefore be judged on more than whether it matches one hidden implementation.
+      Students should demonstrate that they can notice uncertainty, ask useful questions, make defensible decisions,
+      decompose a system, and test whether the pieces work together.
+    </p>
+    <div class="callout">
+      <strong>Important:</strong> do not grade students primarily on whether they happened to guess the instructor's preferred
+      interpretation of an ambiguous requirement. Grade the quality of their analysis, the clarity of their decisions,
+      and whether their code and tests are consistent with those decisions.
+    </div>
+  </section>
+
+  <section id="principles">
+    <h2>Suggested Grading Principles</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Reward consistency</h3>
+        <p>A documented product decision that is implemented and tested consistently is stronger evidence than code that accidentally matches an expected value.</p>
+      </div>
+      <div class="card">
+        <h3>Assess the system</h3>
+        <p>Because the assignment requires separate components, students should show both component-level correctness and correct behavior across component boundaries.</p>
+      </div>
+      <div class="card">
+        <h3>Make communication visible</h3>
+        <p>The limited question budget is part of the learning objective. High-value questions and concise decision records should count toward the grade.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="rubric">
+    <h2>Suggested 100-Point Rubric</h2>
+    <p>
+      This rubric is intended as a starting point. The point distribution deliberately gives substantial weight to
+      requirements work, decomposition, and testing so that the assignment does not collapse into a code-generation exercise.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Exemplary</th>
+            <th>Proficient</th>
+            <th>Developing</th>
+            <th>Beginning</th>
+          </tr>
+        </thead>
+        <tbody>
+          
+      <tr>
+        <th scope="row">
+          <div class="category">Requirements analysis &amp; interpretation</div>
+          <div class="points">20 pts</div>
+        </th>
+        <td><strong>Exemplary</strong><br>Identifies important ambiguities, inconsistencies, missing information, and risky assumptions. Documents the decisions the team made when the specification did not fully determine behavior.</td>
+        <td><strong>Proficient</strong><br>Addresses several important ambiguities but misses some high-impact issues or records decisions inconsistently.</td>
+        <td><strong>Developing</strong><br>Mostly implements the apparent requirements without showing much evidence of analyzing them.</td>
+        <td><strong>Beginning</strong><br>Little evidence of requirements analysis; major contradictions or missing information are ignored.</td>
+      </tr>
+    
+      <tr>
+        <th scope="row">
+          <div class="category">Use of the Product Manager question budget</div>
+          <div class="points">10 pts</div>
+        </th>
+        <td><strong>Exemplary</strong><br>Uses the limited questions strategically. Questions are precise, high-value, and reduce uncertainty that affects multiple parts of the system.</td>
+        <td><strong>Proficient</strong><br>Questions are relevant and useful, though one or more could have been more precise or higher leverage.</td>
+        <td><strong>Developing</strong><br>Questions focus mainly on implementation details or resolve relatively low-impact issues.</td>
+        <td><strong>Beginning</strong><br>Questions are unused, exceed the allowed number, or do not meaningfully reduce uncertainty.</td>
+      </tr>
+    
+      <tr>
+        <th scope="row">
+          <div class="category">Program decomposition &amp; interfaces</div>
+          <div class="points">15 pts</div>
+        </th>
+        <td><strong>Exemplary</strong><br>The system is divided into sensible components with clear responsibilities and clean data flow between them. Separate files/classes/functions support testing and integration.</td>
+        <td><strong>Proficient</strong><br>The design is mostly modular, with a few components that are too tightly coupled or responsibilities that are unclear.</td>
+        <td><strong>Developing</strong><br>Some decomposition is present, but important logic is concentrated in a small number of places or interfaces are inconsistent.</td>
+        <td><strong>Beginning</strong><br>Little meaningful decomposition; most behavior is implemented in one place or components cannot be tested independently.</td>
+      </tr>
+    
+      <tr>
+        <th scope="row">
+          <div class="category">Functional behavior</div>
+          <div class="points">20 pts</div>
+        </th>
+        <td><strong>Exemplary</strong><br>The implementation behaves consistently with the team&#x27;s documented decisions and the clarified requirements. Core workflows complete successfully with representative inputs.</td>
+        <td><strong>Proficient</strong><br>Most core behavior works, with a few incorrect cases or mismatches between documented decisions and implementation.</td>
+        <td><strong>Developing</strong><br>A substantial portion works, but several required behaviors are incomplete or inconsistent.</td>
+        <td><strong>Beginning</strong><br>Core workflow is incomplete or frequently fails on ordinary inputs.</td>
+      </tr>
+    
+      <tr>
+        <th scope="row">
+          <div class="category">Unit testing</div>
+          <div class="points">10 pts</div>
+        </th>
+        <td><strong>Exemplary</strong><br>Unit tests cover the major components, important boundary cases, and at least some error conditions. Tests clearly communicate the intended behavior of each component.</td>
+        <td><strong>Proficient</strong><br>Most major components have useful unit tests, but important boundaries or error cases are missing.</td>
+        <td><strong>Developing</strong><br>Some unit tests exist, but coverage is narrow or tests mostly repeat simple happy-path examples.</td>
+        <td><strong>Beginning</strong><br>Few or no meaningful unit tests.</td>
+      </tr>
+    
+      <tr>
+        <th scope="row">
+          <div class="category">Integration testing</div>
+          <div class="points">10 pts</div>
+        </th>
+        <td><strong>Exemplary</strong><br>Integration tests exercise realistic multi-component workflows and verify that information moves correctly across component boundaries.</td>
+        <td><strong>Proficient</strong><br>At least one useful end-to-end or multi-component test is present, with minor gaps in coverage.</td>
+        <td><strong>Developing</strong><br>Integration testing is limited or mostly duplicates unit tests.</td>
+        <td><strong>Beginning</strong><br>No meaningful integration testing.</td>
+      </tr>
+    
+      <tr>
+        <th scope="row">
+          <div class="category">Handling invalid or unsupported inputs</div>
+          <div class="points">5 pts</div>
+        </th>
+        <td><strong>Exemplary</strong><br>Invalid breeds, locations, values, or unsupported cases produce understandable errors rather than crashes or silent incorrect results.</td>
+        <td><strong>Proficient</strong><br>Most invalid inputs are handled clearly, with a few rough edges.</td>
+        <td><strong>Developing</strong><br>Some validation exists, but several unsupported cases fail unclearly.</td>
+        <td><strong>Beginning</strong><br>Invalid inputs frequently cause confusing failures or incorrect output.</td>
+      </tr>
+    
+      <tr>
+        <th scope="row">
+          <div class="category">Technical communication &amp; reflection</div>
+          <div class="points">10 pts</div>
+        </th>
+        <td><strong>Exemplary</strong><br>The submission clearly explains important design decisions, unresolved risks, testing strategy, and what changed after clarification or testing. The explanation is concise and specific.</td>
+        <td><strong>Proficient</strong><br>The explanation covers most important decisions and testing choices but lacks some detail or specificity.</td>
+        <td><strong>Developing</strong><br>A brief explanation is present but focuses mainly on what the code does rather than why decisions were made.</td>
+        <td><strong>Beginning</strong><br>Little or no explanation of decisions, risks, or testing.</td>
+      </tr>
+    
+        </tbody>
+      </table>
+    </div>
+
+    <div class="score-box">
+      <div class="score"><strong>30 pts</strong>Requirements + communication</div>
+      <div class="score"><strong>35 pts</strong>Design + functional behavior</div>
+      <div class="score"><strong>25 pts</strong>Testing + robustness</div>
+      <div class="score"><strong>10 pts</strong>Reflection + explanation</div>
+    </div>
+  </section>
+
+  <section id="evidence">
+    <h2>Suggested Evidence to Collect</h2>
+    <p>
+      The easiest way to grade the learning goals is to require a small set of artifacts that make student reasoning visible.
+      These can be submitted alongside the code or included in a short README.
+    </p>
+    <div class="cards">
+      <div class="card">
+        <h3>Before coding</h3>
+        <ul>
+          <li>A short list of ambiguities or risks the team noticed.</li>
+          <li>The questions they chose to spend on the Product Manager.</li>
+          <li>A sketch or short description of planned components and responsibilities.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>With the implementation</h3>
+        <ul>
+          <li>The source files/classes/modules.</li>
+          <li>Unit tests for individual components.</li>
+          <li>Integration tests for multi-component workflows.</li>
+          <li>A short decision log for ambiguities that remained unresolved.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>After testing</h3>
+        <ul>
+          <li>One example of a test that exposed a misunderstanding or design problem.</li>
+          <li>One change made because of clarification, testing, or integration.</li>
+          <li>One remaining risk or question the team would investigate next.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Optional demonstration</h3>
+        <ul>
+          <li>A brief live or recorded walkthrough of one requirement from specification to test.</li>
+          <li>A short explanation of how two components interact.</li>
+          <li>A response to one unseen edge case supplied by the instructor.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="ai">
+    <h2>Assessment in a Generative-AI Setting</h2>
+    <p>
+      One motivation for this activity is that the implementation itself is intentionally within the range of what a modern
+      code generator can often produce. If AI tools are permitted, the assessment should therefore focus on evidence that the
+      student can specify, evaluate, test, and revise the generated work.
+    </p>
+    <div class="callout green">
+      <strong>Suggested framing:</strong> AI may help produce code, but students remain responsible for the requirements decisions,
+      architecture, tests, explanations, and final behavior of the system.
+    </div>
+    <p>
+      A useful policy is to require students to record their requirements analysis, question choices, and proposed component
+      structure <em>before</em> using a code generator. Afterward, students can be asked to identify at least one place where the
+      generated code made an assumption, missed a requirement, or needed a new test.
+    </p>
+    <p class="small">
+      If AI use is not permitted in a particular course, the same rubric still works; the categories evaluate software reasoning
+      rather than the means by which syntax was produced.
+    </p>
+  </section>
+
+  <section id="commentary">
+    <h2>Instructor Commentary and Grading Notes</h2>
+
+    <h3>Distinguish specification errors from implementation errors</h3>
+    <p>
+      When a submission fails, consider asking: did the student misunderstand the requirement, make an explicit but different
+      product decision, or simply implement their own stated decision incorrectly? These are different kinds of problems and can
+      receive different feedback.
+    </p>
+
+    <h3>Prefer targeted feedback over large point deductions</h3>
+    <p>
+      A single misunderstood ambiguity can affect several downstream calculations. Avoid deducting full points in every category
+      for the same root cause. Instead, score the requirements decision once, then evaluate whether the rest of the system is
+      internally consistent with that decision.
+    </p>
+
+    <h3>Use the tests as communication artifacts</h3>
+    <p>
+      A strong test suite should tell the reader what the team believes the system is supposed to do. Test names, edge cases, and
+      integration scenarios are therefore part of the student's technical communication, not merely a mechanism for catching bugs.
+    </p>
+
+    <h3>Consider a short oral check</h3>
+    <p>
+      If authorship or AI assistance is a concern, a two- to five-minute explanation can provide strong evidence of understanding.
+      Ask a student to explain one design decision, one test, and one ambiguity rather than asking them to reproduce code from memory.
+    </p>
+  </section>
+
+  <section id="variants">
+    <h2>Possible Assessment Variations</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Lower-stakes CS1 version</h3>
+        <p>Reduce the rubric to requirements analysis, decomposition, functional behavior, unit tests, integration tests, and reflection. Grade primarily for completion plus evidence of thoughtful decisions.</p>
+      </div>
+      <div class="card">
+        <h3>Team version</h3>
+        <p>Add a short individual reflection identifying the student's contribution and one requirement or test they personally investigated.</p>
+      </div>
+      <div class="card">
+        <h3>AI-explicit version</h3>
+        <p>Require a brief comparison between an AI-generated implementation and the team's tests, including at least one issue the tests exposed.</p>
+      </div>
+      <div class="card">
+        <h3>Testing-focused version</h3>
+        <p>Provide partial implementations and shift more points toward test design, ambiguity identification, and integration behavior.</p>
+      </div>
+    </div>
+  </section>
+</body>
