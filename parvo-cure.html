@@ -15,8 +15,99 @@ subtitle: Nifty Assignment- Parvo Cure
 <h2>Description:</h2>
 <p>In the age of ubiquitous generative AI, it can be problematic to assign a project that can be easily completed by the tools the university gives students for free. However, it is also problematic if you expect novices to be able to generate code that these tools can't. This is an ambiguous programming project that makes requirements analysis, decomposition, testing, and communication the hard part. Because even when the code itself is small enough for a generative AI system to produce, it is important that students learn to create it themselves. Depending on how you want to approach the assignment you can frame it as a typical CS1 assignment that is far more AI-proof from an academic integrity perspective or a project that invites students to use AI but make sure they don't forget to do the thinking necessary.</p>
 <p>In this themed assignment, students are tasked with creating a set of small code segments that manage the distribution of medicine for puppies</p>
-<img src="/assets/img/dog.png">
 <p>Students are rewarded for noticing what the prompt does not say, asking high-value questions, turning answers into precise contracts, and building tests that make their interpretation visible.</p>
+<img src="/assets/img/dog.png">
+
+<h1>Metadata</h1>
+<table>
+<tbody>
+<tr>
+<th>Summary</th>
+<td>
+This assignment asks students to build a small multi-component ordering system for a fictional canine parvovirus treatment company. The programming tasks themselves are intentionally appropriate for CS1 and are within the range of what modern generative-AI tools can often produce. The learning challenge instead comes from incomplete, inconsistent, and ambiguous requirements. Students must identify risks, decide what needs clarification, use a limited number of questions for a person playing the Product Manager, document assumptions, decompose the system into separate components, and validate their interpretation with unit and integration tests.
+</td>
+</tr>
+
+<tr>
+<th>Audience</th>
+<td>
+<p>The assignment is intended for a CS1 course after students have learned basic control flow, functions or methods, collections, file input, and simple classes or modules. Students should also have had at least a brief introduction to automated testing.</p>
+<p>The project is especially suitable for courses reconsidering learning goals in the context of generative AI. Students may complete the implementation without AI, use AI only after requirements and design work, or use AI throughout while remaining responsible for evaluating assumptions, testing behavior, and explaining their decisions.</p>
+</td>
+</tr>
+
+<tr>
+<th>Difficulty</th>
+<td>
+<p>The coding difficulty is intentionally moderate for CS1. Most individual components require straightforward use of conditionals, arithmetic, collections, file loading, and small classes or functions.</p>
+<p>The conceptual difficulty is higher because students must recognize ambiguity, prioritize questions, reason about interactions among components, and distinguish requirement problems from implementation problems. The assignment can be completed in a single 90–115 minute structured lesson with reduced implementation scope, or as a multi-day project with a complete implementation and larger test suite.</p>
+</td>
+</tr>
+
+<tr>
+<th>Topics</th>
+<td>
+Requirements analysis; ambiguity and specification; program decomposition; classes and modules; dictionaries/maps; lists; CSV/file input; validation and exceptions; unit testing; integration testing; software interfaces; data flow; debugging; technical communication; metacognition; generative-AI-assisted programming.
+</td>
+</tr>
+
+<tr>
+<th>Strengths</th>
+<td>
+<p>The assignment shifts student attention from code production toward specification, design, testing, and communication. This makes it useful in an environment where code generation is increasingly inexpensive but evaluating whether generated code is correct remains essential.</p>
+<p>The limited Product Manager question budget encourages prioritization and strategic communication. Students must decide which uncertainties are important enough to spend a question on rather than asking for implementation help.</p>
+<p>The required separation into components makes program structure visible and creates natural opportunities for both unit and integration testing. Tests act as executable statements of what students believe the requirements mean.</p>
+<p>The intentionally imperfect data and requirements create productive ambiguity: students can discover inconsistencies before coding, during component testing, or when individually correct pieces fail to integrate.</p>
+<p>The same instructional structure can be reused with different themes, allowing instructors to preserve assessment and facilitation materials while changing the story or domain.</p>
+</td>
+</tr>
+
+<tr>
+<th>Weaknesses</th>
+<td>
+<p>Some students may initially perceive intentionally ambiguous requirements as unfair if the instructional purpose is not explained clearly. The instructor must distinguish between productive ambiguity and arbitrary hidden expectations.</p>
+<p>Facilitation requires preparation: the Product Manager should use a consistent answer key, and instructors should avoid accidentally revealing teacher-only ambiguity notes.</p>
+<p>A single early interpretation can affect many downstream calculations. Grading therefore needs to avoid repeatedly penalizing the same root misunderstanding when the rest of a student's implementation is internally consistent.</p>
+</td>
+</tr>
+
+<tr>
+<th>Dependencies</th>
+<td>
+<p>Students need a working Python or Java development environment. Starter ZIP files are provided for both languages, along with CSV data files, source-file scaffolding, and starter unit and integration tests.</p>
+<p>No external libraries are required. Python uses the standard library and <code>unittest</code>; Java can be compiled and run with a standard JDK using the provided package structure.</p>
+<p>If generative AI is part of the activity, instructors should specify when AI use is permitted and what planning, decision-log, testing, or reflection artifacts must be produced independently.</p>
+</td>
+</tr>
+
+<tr>
+<th>Variants</th>
+<td>
+<p>The project can be run as a short in-class activity, a multi-day team project, a testing-focused exercise with partial implementations, or an AI-explicit assignment in which students evaluate generated code against their own requirements and tests.</p>
+<p>The same design can be remixed into other themes while preserving the underlying ambiguities and component interactions. Possible alternatives include:</p>
+<ul>
+<li>disaster-relief supply distribution,</li>
+<li>interplanetary travel booking,</li>
+<li>a fantasy potion marketplace,</li>
+<li>wildlife rehabilitation and treatment scheduling,</li>
+<li>campus event registration and pricing.</li>
+</ul>
+<p>Difficulty can be increased by reducing starter scaffolding, requiring students to design their own CSV schema, adding malformed input files, increasing the number of interacting components, or asking students to write acceptance tests for another team's implementation.</p>
+</td>
+</tr>
+
+<tr>
+<th>Teaching Notes</th>
+<td>
+<p>The assignment works best when requirements analysis is treated as a first-class activity rather than a prelude to coding. Give students time to inspect the specification before they are allowed to ask Product Manager questions or begin implementation.</p>
+<p>The instructor should resist answering engineering questions in the Product Manager role. A useful response is: “That is an engineering decision; what product behavior do you need clarified?”</p>
+<p>Encourage students to record assumptions and connect each important requirement to at least one test. During integration, ask students to identify whether a failure comes from code, an interface mismatch, or a disagreement about the specification.</p>
+<p>If AI is allowed, a productive structure is to require students to freeze an ambiguity log, question list, architecture sketch, and initial tests before using a code generator. The debrief can then focus on where generated code made unsupported assumptions and how testing exposed them.</p>
+</td>
+</tr>
+</tbody>
+</table>
+
 <strong>Why this assignment now?</strong>
 <p>Small calculators, table lookups, and simple classes are exactly the kinds of tasks that help CS1 students practice. They are also the kinds of tasks modern code-generating tools can often complete from a prompt. That means that instructors have some interesting tradeoffs to consider. Instead of making the entire grade based on a pencil and paper test in class, this lesson invites you to change the focus of the assignment. It provides a prompt that AI says it can generate code for, but that requires a human touch. The important questions become: 
     <ul>
